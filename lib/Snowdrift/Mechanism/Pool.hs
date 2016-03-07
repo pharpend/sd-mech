@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -w #-}
-
 -- Snowdrift.coop - cooperative funding platform
 -- Copyright (c) 2012-2016, Snowdrift.coop
 -- 
@@ -17,21 +15,29 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -- | 
--- Module      : Snowdrift.Mechanism
--- Description : Mechanism for snowdrift
+-- Module      : Snowdrift.Mechanism.Pool
+-- Description : Constructing and checking pools
 -- Copyright   : Copyright (c) 2012-2016, Snowdrift.coop.
 -- License     : AGPL-3
 -- Maintainer  : dev@lists.snowdrift.coop
 -- Stability   : experimental
 -- Portability : POSIX
--- 
 
-module Snowdrift.Mechanism
-       ( module Snowdrift.Mechanism.Pledge
-       , module Snowdrift.Mechanism.Pool
-       , module Snowdrift.Mechanism.Types
-       ) where
+module Snowdrift.Mechanism.Pool where
 
-import qualified Snowdrift.Mechanism.Pledge
-import qualified Snowdrift.Mechanism.Pool
-import qualified Snowdrift.Mechanism.Types
+import Snowdrift.Mechanism.Types
+
+import Data.Set (Set)
+
+-- |"Smart constructor" for constructing pools.
+mkPool :: IdentMap Patron
+       -> IdentMap Project
+       -> Pledges
+       -> Either PoolError Pool
+mkPool patrons projects pledges = Right (Pool patrons projects pledges)
+
+
+-- |Errors that can occur when constructing a pool
+data PoolError = SuspendPledges (Set PledgeSuspension)
+               | DeletePledges (Set PledgeDeletion)
+  deriving (Show, Eq)     
