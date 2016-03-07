@@ -15,23 +15,26 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -- | 
--- Module      : Snowdrift.Mechanism.Types.Lenses
--- Description : Lenses for the mechanism types
+-- Module      : Snowdrift.Mechanism.Pledge
+-- Description : Functions for checking attributes of pledges
 -- Copyright   : Copyright (c) 2012-2016, Snowdrift.coop.
 -- License     : AGPL-3
 -- Maintainer  : dev@lists.snowdrift.coop
 -- Stability   : experimental
 -- Portability : POSIX
 
-module Snowdrift.Mechanism.Types.Lenses where
+module Snowdrift.Mechanism.Pledge.Checks where
 
 import Snowdrift.Mechanism.Types
 
-import Control.Lens
+import qualified Data.Map as M
 
-makeLensesFor
-    [ ("pledgesValid", "_pledgesValid")
-    , ("pledgesSuspended", "_pledgesSuspended")
-    , ("pledgesDeleted", "_pledgesDeleted")
-    ]
-    ''Pledges
+-- |Check to see if the Pledge's patron is in the pool
+pledgePatronExists :: Pool -> Pledge -> Bool
+pledgePatronExists (Pool patrons _ _) (Pledge patron _) =
+  elem patron (M.keys patrons)
+
+-- |Check to see if the Pledge's project is in the pool
+pledgeProjectExists :: Pool -> Pledge -> Bool
+pledgeProjectExists (Pool _ projects _) (Pledge _ project) =
+  elem project (M.keys projects)

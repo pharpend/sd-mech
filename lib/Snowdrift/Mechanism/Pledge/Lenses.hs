@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -w #-}
-
 -- Snowdrift.coop - cooperative funding platform
 -- Copyright (c) 2012-2016, Snowdrift.coop
 -- 
@@ -17,25 +15,23 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -- | 
--- Module      : Snowdrift.Mechanism
--- Description : Mechanism for snowdrift
+-- Module      : Snowdrift.Mechanism.Pledge.Lenses
+-- Description : Lenses for pledges
 -- Copyright   : Copyright (c) 2012-2016, Snowdrift.coop.
 -- License     : AGPL-3
 -- Maintainer  : dev@lists.snowdrift.coop
 -- Stability   : experimental
 -- Portability : POSIX
--- 
 
-module Snowdrift.Mechanism
-       ( module Snowdrift.Mechanism.Pledge
-       , module Snowdrift.Mechanism.Pledge.Checks
-       , module Snowdrift.Mechanism.Pledge.Lenses
-       , module Snowdrift.Mechanism.Pool
-       , module Snowdrift.Mechanism.Types
-       ) where
+module Snowdrift.Mechanism.Pledge.Lenses where
 
-import qualified Snowdrift.Mechanism.Pledge
-import qualified Snowdrift.Mechanism.Pledge.Checks
-import qualified Snowdrift.Mechanism.Pledge.Lenses
-import qualified Snowdrift.Mechanism.Pool
-import qualified Snowdrift.Mechanism.Types
+import Snowdrift.Mechanism.Types
+
+import Control.Lens
+
+makeLensesFor
+    [ ("pledgesValid", "_pledgesValid")
+    , ("pledgesSuspended", "_pledgesSuspended")
+    , ("pledgesDeleted", "_pledgesDeleted")
+    ]
+    ''Pledges

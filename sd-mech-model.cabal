@@ -34,9 +34,10 @@ library
   exposed-modules:
     Snowdrift.Mechanism
     Snowdrift.Mechanism.Pledge
+    Snowdrift.Mechanism.Pledge.Checks
+    Snowdrift.Mechanism.Pledge.Lenses
     Snowdrift.Mechanism.Pool
     Snowdrift.Mechanism.Types
-    Snowdrift.Mechanism.Types.Lenses
   build-depends:
       base ==4.8.*
     , containers
