@@ -26,13 +26,12 @@
 
 module Snowdrift.Mechanism where
 
-import Control.Exceptional
 import Control.Monad.State.Lazy
 import Data.Int (Int64)
 import Data.Map.Lazy (Map)
 import qualified Data.Map.Lazy as M
-import Data.Vector (Vector)
-import qualified Data.Vector as V
+import Data.Set (Set)
+import qualified Data.Set as S
 
 -- |'Ident' is a unique numerical identification for an entry in a
 -- database. 'Ident' is usually an 'Int', or some variety thereof.
@@ -73,26 +72,41 @@ data Pledge = Pledge { pledgePatron :: Ident
                      }
   deriving (Eq, Show)
 
+instance Ord Pledge where
+  compare (Pledge a1 a2) (Pledge b1 b2) = compare (a1, a2) (b1, b2)
+
 
 -- |The 'Pool' is the moral equivalent of a database, for the purposes of this
 -- model.
 data Pool = Pool { poolPatrons :: IdentMap Patron
                  , poolProjects :: IdentMap Project
-                 , poolPledges :: Vector Pledge
+                 , poolPledges :: Set Pledge
                  }
   deriving (Eq, Show)
 
--- |"Smart constructor" for constructing pools
+-- |Possible errors when constructing pools
+data PoolError = InvalidPledges PledgeError
+  deriving (Eq, Show)
+
+data PledgeError = NonexistentParties (Set Pledge)
+  deriving (Eq, Show)
+
+-- |"Smart constructor" for constructing pools. If 
 mkPool :: IdentMap Patron
        -> IdentMap Project
-       -> Vector Pledge
-       -> Exceptional Pool
-mkPool a b c = pure $ Pool a b c
+       -> Set Pledge
+       -> Either PoolError Pool
+mkPool patrons projects pledges
+  | not (S.null badPledges) = Left (InvalidPledges (NonexistentParties badPledges))
+  | otherwise = Right (Pool patrons projects pledges)
+  where
+    potentialPool = Pool patrons projects pledges
+    (goodPledges, badPledges) = verifyPledgePartiesExist potentialPool
 
 -- |Looks through a 'Pool', and makes sure that the parties involved in each
--- 'Pledge' actually exist. It returns a pair of 'Vector's. The first is the
+-- 'Pledge' actually exist. It returns a pair of 'Set's. The first is the
 -- good pledges, the second is the bad pledges.
-verifyPledgePartiesExist :: Pool -> (Vector Pledge, Vector Pledge)
+verifyPledgePartiesExist :: Pool -> (Set Pledge, Set Pledge)
 verifyPledgePartiesExist pl = snd (runState verification (mempty, mempty))
   where
     patronKeys = M.keys (poolPatrons pl)
@@ -100,12 +114,16 @@ verifyPledgePartiesExist pl = snd (runState verification (mempty, mempty))
     verification = forM_ (poolPledges pl) $ \thisPledge@(Pledge ptr prj)-> do
       (goodPledges, badPledges) <- get
       if elem ptr patronKeys && elem prj projectKeys
-        then put ( V.snoc goodPledges thisPledge
+        then put ( S.insert thisPledge goodPledges
                  , badPledges
                  )
         else put ( goodPledges
-                 , V.snoc badPledges thisPledge
+                 , S.insert thisPledge badPledges
                  )
         
         
-
+-- |Given a 'Pool', see if the 'Ident's in a 'Pledge' refer to parties that
+-- exist in the 'Pool'.
+pledgePartiesExist :: Pool -> Pledge -> Bool
+pledgePartiesExist (Pool patrons projects _) (Pledge patron project) =
+  elem patron (M.keys patrons) && elem project (M.keys projects)

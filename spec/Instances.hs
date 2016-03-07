@@ -34,14 +34,13 @@ module Instances where
 
 import Snowdrift.Mechanism
 
-import Data.Map.Lazy (Map)
 import qualified Data.Map.Lazy as M
-import Data.Vector (Vector)
-import qualified Data.Vector as V
+import Data.Set (Set)
+import qualified Data.Set as S
 import Test.QuickCheck
 
-instance Arbitrary x => Arbitrary (Vector x) where
-  arbitrary = fmap V.fromList arbitrary         
+instance (Arbitrary x, Ord x) => Arbitrary (Set x) where
+  arbitrary = fmap S.fromList arbitrary         
 
 instance Arbitrary x => Arbitrary (IdentMap x) where
   arbitrary = M.fromList <$> arbitrary         
@@ -59,10 +58,10 @@ instance Arbitrary Pool where
       pledges <- createPledges patrons projects
       return (Pool patrons projects pledges)
 
-createPledges :: IdentMap Patron -> IdentMap Project -> Gen (Vector Pledge)
+createPledges :: IdentMap Patron -> IdentMap Project -> Gen (Set Pledge)
 createPledges patrons projects
   | M.null patrons || M.null projects = return mempty
-  | otherwise = V.fromList <$> listOf (createPledge patrons projects)
+  | otherwise = S.fromList <$> listOf (createPledge patrons projects)
 
 
 -- |Input maps mustn't be empty
@@ -74,3 +73,13 @@ createPledge patronsMap projectsMap = do
       projectId <- elements (M.keys projectsMap)
       return (Pledge patronId projectId)
         
+
+-- |A truly arbitrary pledge; the respective ids of the benefactor and the
+-- beneficiary are generated at random, rather than picked from a list of
+-- patrons/projects already in a pool.
+genPledge :: Gen Pledge
+genPledge = Pledge <$> arbitrary <*> arbitrary
+
+-- |Given a Pool, generate a pledge that does not satisfy 'pledgePartiesExist'
+badPledge :: Pool -> Gen Pledge
+badPledge pool = suchThat genPledge (not . pledgePartiesExist pool)

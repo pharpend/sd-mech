@@ -30,7 +30,7 @@ import Snowdrift.Mechanism
 
 import Control.Monad (forM_)
 import qualified Data.Map.Lazy as M
-import qualified Data.Vector as V
+import qualified Data.Set as S
 import Test.Hspec
 import Test.QuickCheck
 
