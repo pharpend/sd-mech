@@ -111,12 +111,14 @@ instance Ord PledgeDeletion where
 
 -- |Reasons to suspend a pledge
 data PledgeSuspension = InsufficientFunds Pledge
+                      | PendingApproval Pledge
   deriving (Eq, Show)
 
 -- |Get the underlying pledge that was suspended for whatever reason.
 unSuspension :: PledgeSuspension -> Pledge
 unSuspension = \case
   InsufficientFunds p -> p
+  PendingApproval p -> p
 
 instance Ord PledgeSuspension where
   compare = comparing unSuspension
