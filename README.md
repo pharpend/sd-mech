@@ -1,9 +1,9 @@
-# sd-mechanism
+# sd-mech-model
 
-This is the "mechanism" for [Snowdrift][1]. It is written in
+This is a model for the "mechanism" of [Snowdrift][1]. It is written in
 [Haskell][2] and licensed under the
 [GNU Affero General Public License][3] (AGPL). You can read a copy of
-the AGPL in <LICENSE.md>.
+the AGPL in the [LICENSE](LICENSE) file.
 
 **What is Snowdrift?**
 
