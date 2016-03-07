@@ -29,11 +29,19 @@ import Snowdrift.Mechanism.Pledge
 import Snowdrift.Mechanism.Types
 
 import Data.Set (Set)
+import qualified Data.Set as S
 
 -- |"Smart constructor" for constructing pools.
+-- 
+-- Currently, it just suspends all pledges pending approval by the supreme
+-- soviet.
 mkPool :: IdentMap Patron
        -> IdentMap Project
        -> Set Pledge
        -> Pool
 mkPool patrons projects pledges =
-  Pool patrons projects (mkPledgesFrom patrons projects pledges)
+  Pool patrons
+       projects
+       (Pledges mempty
+                (S.map PendingApproval pledges)
+                mempty)

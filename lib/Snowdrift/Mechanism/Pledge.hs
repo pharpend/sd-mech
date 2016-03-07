@@ -33,7 +33,6 @@ import qualified Data.Map as M
 import Data.Set (Set)
 import qualified Data.Set as S
 
-
 -- |Given a 'Pool', and a 'Set' of 'Pledge's, split the set into 'Pledges',
 -- meaning split them up into valid pledges, suspended pledges, and pledges to
 -- delete.
