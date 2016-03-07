@@ -56,7 +56,9 @@ instance Arbitrary Pool where
       patrons <- arbitrary
       projects <- arbitrary
       pledges <- createPledges patrons projects
-      return (Pool patrons projects pledges)
+      return (Pool patrons projects (mkValid pledges))
+    where
+      mkValid pledgeSet = Pledges pledgeSet mempty mempty
 
 createPledges :: IdentMap Patron -> IdentMap Project -> Gen (Set Pledge)
 createPledges patrons projects

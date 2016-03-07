@@ -57,22 +57,16 @@ makeLensesFor
     ]
     ''Pledges
 
+-- -- |Sort of like fmap, but for something that isn't technically a functor
+-- mutatePledges :: (Pledge -> Pledge) -> Pledges -> Pledges
+-- mutatePledges f (Pledges v s d) =
+--   Pledges (fmap f v)
+--           (fmap (PledgeSuspension . f . unSuspension) s)
+--           (fmap (PledgeDeletion . f . unDeletion) d)
+
 -- ** 'Pledge's
 makeLensesFor
   [ ("pledgePatron", "_pledgePatron")
   , ("pledgeProject", "_pledgeProject") 
   ]
   ''Pledge
-
--- * Technically not lenses, but whatever
-
--- |Get the pledge that was deleted for whatever reason
-unDeletion :: PledgeDeletion -> Pledge  
-unDeletion = \case
-  NonexistentPatron p -> p
-  NonexistentProject p -> p
-
--- |Get the underlying pledge that was suspended for whatever reason.
-unSuspension :: PledgeSuspension -> Pledge
-unSuspension = \case
-  InsufficientFunds p -> p

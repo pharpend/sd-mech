@@ -29,6 +29,7 @@ import Instances
 import Snowdrift.Mechanism
 
 import Control.Monad (forM_)
+import Data.Either (isLeft)
 import qualified Data.Map.Lazy as M
 import qualified Data.Set as S
 import Test.Hspec
@@ -51,35 +52,24 @@ arbitraryCheck =
         specify "All of the pledge patrons should exist" $ do
           property $ \pool -> do
             let patronIds = M.keys (poolPatrons pool)
-                pledgePatrons = S.map pledgePatron (poolPledges pool)
+                pledgePatrons = S.map pledgePatron (pledgesValid (poolPledges pool))
             forM_ pledgePatrons $ \pledger ->
               shouldSatisfy pledger (`elem` patronIds)
         specify "All of the pledge projects should exist" $ do
           property $ \pool -> do
             let projectIds = M.keys (poolProjects pool)
-                pledgeProjects = S.map pledgeProject (poolPledges pool)
+                pledgeProjects = S.map pledgeProject (pledgesValid (poolPledges pool))
             forM_ pledgeProjects $ \pledger ->
               shouldSatisfy pledger (`elem` projectIds)
-
-        context "verifyPledgePartiesExist" $ do
-          specify "The list of bad pledges should be empty" $
-            property $ \pool -> do
-              let (_, badPledges) = verifyPledgePartiesExist pool
-              shouldSatisfy badPledges S.null
-          specify "The list of good pledges should be the same length as the initial list" $
-            property $ \pool -> do
-              let (goodPledges, _) = verifyPledgePartiesExist pool
-              shouldBe (S.size goodPledges)
-                        (S.size (poolPledges pool))
         context "mkPool" $ do
-          it "should return Right (whatever pool we generated)" $
+          it "should return whatever pool we generated" $
             property $ \pool@(Pool patrons projects pledges) ->
-              shouldBe (mkPool patrons projects pledges)
-                       (Right pool)
+              shouldBe (mkPool patrons projects (pledgesValid pledges))
+                       pool
         context "pledgePartiesExist" $ do
           it "should return true for each pledge in the pool" $
             property $ \pool ->
-              forM_ (poolPledges pool) $ \pledge ->
+              forM_ (pledgesValid (poolPledges pool)) $ \pledge ->
                 shouldSatisfy pledge (pledgePartiesExist pool)
             
 
@@ -94,10 +84,4 @@ badPledgesCheck = context "Bad pledges" $ do
             badPledges <- S.fromList <$> generate (listOf (badPledge pool))
             forM_ badPledges $ \bp ->
               shouldSatisfy bp (not . pledgePartiesExist pool)
-      context "mkPool (with a nonempty list of bad pledges)" $ do
-        it "should return an error with a list of our invalid pledges" $
-          property $ \pool@(Pool patrons projects pledges) -> do
-            badPledges <- S.fromList <$> generate (listOf1 (badPledge pool))
-            shouldBe (mkPool patrons projects (mappend pledges badPledges))
-                     (Left (InvalidPledges (NonexistentParties badPledges)))
     

@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -w #-}
 
 -- Snowdrift.coop - cooperative funding platform
 -- Copyright (c) 2012-2016, Snowdrift.coop
@@ -36,10 +35,10 @@ module Snowdrift.Mechanism
        , module Snowdrift.Mechanism.Types.Lenses
        ) where
 
-import qualified Snowdrift.Mechanism.Patron
-import qualified Snowdrift.Mechanism.Pledge
-import qualified Snowdrift.Mechanism.Pledge.Checks
-import qualified Snowdrift.Mechanism.Pool
-import qualified Snowdrift.Mechanism.Project
-import qualified Snowdrift.Mechanism.Types
-import qualified Snowdrift.Mechanism.Types.Lenses
+import Snowdrift.Mechanism.Patron
+import Snowdrift.Mechanism.Pledge
+import Snowdrift.Mechanism.Pledge.Checks
+import Snowdrift.Mechanism.Pool
+import Snowdrift.Mechanism.Project
+import Snowdrift.Mechanism.Types
+import Snowdrift.Mechanism.Types.Lenses

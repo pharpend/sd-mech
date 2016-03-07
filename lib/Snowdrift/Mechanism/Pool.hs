@@ -25,6 +25,7 @@
 
 module Snowdrift.Mechanism.Pool where
 
+import Snowdrift.Mechanism.Pledge
 import Snowdrift.Mechanism.Types
 
 import Data.Set (Set)
@@ -32,12 +33,7 @@ import Data.Set (Set)
 -- |"Smart constructor" for constructing pools.
 mkPool :: IdentMap Patron
        -> IdentMap Project
-       -> Pledges
-       -> Either PoolError Pool
-mkPool patrons projects pledges = Right (Pool patrons projects pledges)
-
-
--- |Errors that can occur when constructing a pool
-data PoolError = SuspendPledges (Set PledgeSuspension)
-               | DeletePledges (Set PledgeDeletion)
-  deriving (Show, Eq)     
+       -> Set Pledge
+       -> Pool
+mkPool patrons projects pledges =
+  Pool patrons projects (mkPledgesFrom patrons projects pledges)

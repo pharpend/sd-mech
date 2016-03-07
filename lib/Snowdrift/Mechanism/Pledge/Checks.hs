@@ -29,6 +29,12 @@ import Snowdrift.Mechanism.Types
 
 import qualified Data.Map as M
 
+-- |Make sure both parties exist in a pledge. Equivalent to and-ing
+-- 'pledgePatronExists' and 'pledgeProjectExists'.
+pledgePartiesExist :: Pool -> Pledge -> Bool
+pledgePartiesExist pool pledge =
+  pledgePatronExists pool pledge && pledgeProjectExists pool pledge
+
 -- |Check to see if the Pledge's patron is in the pool
 pledgePatronExists :: Pool -> Pledge -> Bool
 pledgePatronExists (Pool patrons _ _) (Pledge patron _) =

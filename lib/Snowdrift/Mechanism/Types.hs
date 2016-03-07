@@ -22,12 +22,12 @@
 -- Maintainer  : dev@lists.snowdrift.coop
 -- Stability   : experimental
 -- Portability : POSIX
--- 
 
 module Snowdrift.Mechanism.Types where
 
 import Control.Monad.State
 import Data.Int (Int64)
+import Data.Ord (comparing)
 import Data.Map.Lazy (Map)
 import Data.Set (Set)
 
@@ -100,10 +100,26 @@ data PledgeDeletion = NonexistentPatron Pledge
                     | NonexistentProject Pledge
   deriving (Eq, Show)
 
+-- |Get the pledge that was deleted for whatever reason
+unDeletion :: PledgeDeletion -> Pledge  
+unDeletion = \case
+  NonexistentPatron p -> p
+  NonexistentProject p -> p
+
+instance Ord PledgeDeletion where
+  compare = comparing unDeletion
+
 -- |Reasons to suspend a pledge
 data PledgeSuspension = InsufficientFunds Pledge
   deriving (Eq, Show)
 
+-- |Get the underlying pledge that was suspended for whatever reason.
+unSuspension :: PledgeSuspension -> Pledge
+unSuspension = \case
+  InsufficientFunds p -> p
+
+instance Ord PledgeSuspension where
+  compare = comparing unSuspension
 
 -- |Monadic representations of pools. Not in use yet, but perhaps at some point
 -- in the future
