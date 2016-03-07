@@ -54,6 +54,17 @@ mergePledges (Pledges v s d) =
              , S.map unSuspension s
              ]
 
+
+-- |Get the pledge patron's id, then look him up
+getPledgePatron :: Pool -> Pledge -> Maybe Patron
+getPledgePatron pool pledge =
+  M.lookup (pledgePatron pledge) (poolPatrons pool)
+
+-- |Get the pledge benefactor's id, then look them up
+getPledgeProject :: Pool -> Pledge -> Maybe Project
+getPledgeProject pool pledge =
+  M.lookup (pledgeProject pledge) (poolProjects pool)
+
 -- |Given a pool, produce a map from each patron's 'Ident' to Pledges with that
 -- patron as benefactor.
 -- 
@@ -77,14 +88,3 @@ projectsToPledgesMap pool@(Pool _ projects pledges) =
     pledgesToProject projectIdent =
       S.filter (\(Pledge _ projectIdent') -> projectIdent == projectIdent')
                (mergePledges pledges)
-
-
--- |Get the pledge patron's id, then look him up
-getPledgePatron :: Pool -> Pledge -> Maybe Patron
-getPledgePatron pool pledge =
-  M.lookup (pledgePatron pledge) (poolPatrons pool)
-
--- |Get the pledge benefactor's id, then look them up
-getPledgeProject :: Pool -> Pledge -> Maybe Project
-getPledgeProject pool pledge =
-  M.lookup (pledgeProject pledge) (poolProjects pool)
