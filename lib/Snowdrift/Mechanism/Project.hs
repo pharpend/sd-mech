@@ -15,23 +15,12 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -- | 
--- Module      : Snowdrift.Mechanism.Pledge.Lenses
--- Description : Lenses for pledges
+-- Module      : Snowdrift.Mechanism.Project
+-- Description : Constructing and checking projects
 -- Copyright   : Copyright (c) 2012-2016, Snowdrift.coop.
 -- License     : AGPL-3
 -- Maintainer  : dev@lists.snowdrift.coop
 -- Stability   : experimental
 -- Portability : POSIX
 
-module Snowdrift.Mechanism.Pledge.Lenses where
-
-import Snowdrift.Mechanism.Types
-
-import Control.Lens
-
-makeLensesFor
-    [ ("pledgesValid", "_pledgesValid")
-    , ("pledgesSuspended", "_pledgesSuspended")
-    , ("pledgesDeleted", "_pledgesDeleted")
-    ]
-    ''Pledges
+module Snowdrift.Mechanism.Project where

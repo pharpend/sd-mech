@@ -25,11 +25,9 @@
 
 module Snowdrift.Mechanism.Pledge where
 
-import Snowdrift.Mechanism.Pledge.Checks
-import Snowdrift.Mechanism.Pledge.Lenses
 import Snowdrift.Mechanism.Types
+import Snowdrift.Mechanism.Types.Lenses
 
-import Control.Monad.State
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Set (Set)
@@ -50,12 +48,6 @@ mergePledges (Pledges v s d) =
              , S.map unDeletion d
              , S.map unSuspension s
              ]
-  where
-    unSuspension = \case
-      InsufficientFunds p -> p
-    unDeletion = \case
-      NonexistentPatron p -> p
-      NonexistentProject p -> p
 
 -- |Given a pool, produce a map from each patron's 'Ident' to Pledges with that
 -- patron as benefactor.

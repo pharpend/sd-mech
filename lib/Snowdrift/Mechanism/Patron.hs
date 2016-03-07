@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -w #-}
-
 -- Snowdrift.coop - cooperative funding platform
 -- Copyright (c) 2012-2016, Snowdrift.coop
 -- 
@@ -17,29 +15,13 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -- | 
--- Module      : Snowdrift.Mechanism
--- Description : Mechanism for snowdrift
+-- Module      : Snowdrift.Mechanism.Patron
+-- Description : Constructing and checking patrons
 -- Copyright   : Copyright (c) 2012-2016, Snowdrift.coop.
 -- License     : AGPL-3
 -- Maintainer  : dev@lists.snowdrift.coop
 -- Stability   : experimental
 -- Portability : POSIX
--- 
 
-module Snowdrift.Mechanism
-       ( module Snowdrift.Mechanism.Patron
-       , module Snowdrift.Mechanism.Pledge
-       , module Snowdrift.Mechanism.Pledge.Checks
-       , module Snowdrift.Mechanism.Pool
-       , module Snowdrift.Mechanism.Project
-       , module Snowdrift.Mechanism.Types
-       , module Snowdrift.Mechanism.Types.Lenses
-       ) where
+module Snowdrift.Mechanism.Patron where
 
-import qualified Snowdrift.Mechanism.Patron
-import qualified Snowdrift.Mechanism.Pledge
-import qualified Snowdrift.Mechanism.Pledge.Checks
-import qualified Snowdrift.Mechanism.Pool
-import qualified Snowdrift.Mechanism.Project
-import qualified Snowdrift.Mechanism.Types
-import qualified Snowdrift.Mechanism.Types.Lenses
