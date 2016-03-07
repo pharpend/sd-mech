@@ -29,14 +29,18 @@ library
   hs-source-dirs:      lib
   default-extensions:
     LambdaCase
+    MultiWayIf
+    TemplateHaskell
   exposed-modules:
     Snowdrift.Mechanism
     Snowdrift.Mechanism.Pledge
     Snowdrift.Mechanism.Pool
     Snowdrift.Mechanism.Types
+    Snowdrift.Mechanism.Types.Lenses
   build-depends:
       base ==4.8.*
     , containers
+    , lens
     , mtl
 
 test-suite spec

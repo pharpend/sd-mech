@@ -26,36 +26,23 @@
 module Snowdrift.Mechanism.Pledge where
 
 import Snowdrift.Mechanism.Types
+import Snowdrift.Mechanism.Types.Lenses
 
+import Control.Monad.State
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Set (Set)
 import qualified Data.Set as S
 
--- |Given a pool, produce a map from each patron's 'Ident' to Pledges with that
--- patron as benefactor.
--- 
--- Because it's actually much easier to do so, this goes ahead and effectively
--- runs 'fixPledges' on the pledges.
-patronsPledges :: Pool -> Map PatronIdent Pledges
-patronsPledges pool@(Pool patrons _ pledges) =
-    M.mapWithKey (\k _ -> mkPledges pool (pledgesFromPatron k)) patrons
-  where
-    pledgesFromPatron patronId =
-      S.filter (\(Pledge patronId' _) -> patronId == patronId')
-               (mergePledges pledges)
-    
+-- |Check to see if the Pledge's patron is in the pool
+pledgePatronExists :: Pool -> Pledge -> Bool
+pledgePatronExists (Pool patrons _ _) (Pledge patron _) =
+  elem patron (M.keys patrons)
 
--- |Given a pool, produce a map from each project's 'Ident' to Pledges with that
--- project as beneficiary.
-projectsPledges :: Pool -> Map ProjectIdent Pledges
-projectsPledges pool@(Pool _ projects pledges) =
-    M.mapWithKey (\k _ -> mkPledges pool (pledgesToProject k)) projects
-  where
-    pledgesToProject projectIdent =
-      S.filter (\(Pledge _ projectIdent') -> projectIdent == projectIdent')
-               (mergePledges pledges)
-
+-- |Check to see if the Pledge's project is in the pool
+pledgeProjectExists :: Pool -> Pledge -> Bool
+pledgeProjectExists (Pool _ projects _) (Pledge _ project) =
+  elem project (M.keys projects)
 
 -- |Given a 'Pool', and the 'Pledges', "fix" them, so to speak. For instance, if
 -- a patron is listed as having insufficient funds, but is discovered to have
@@ -67,7 +54,22 @@ fixPledges pool pledges = mkPledges pool (mergePledges pledges)
 -- meaning split them up into valid pledges, suspended pledges, and pledges to
 -- delete.
 mkPledges :: Pool -> Set Pledge -> Pledges
-mkPledges = undefined
+mkPledges pool pledgeSet =
+  undefined
+  --   snd (runState processPledgeSet (Pledges mempty mempty mempty))
+  -- where
+  --   processPledgeSet =
+  --     forM_ pledgeSet $ \pledge -> do
+  --       currentPledges <- get
+  --       -- look through the reasons for possible deletion
+  --       if | not (pledgePatronExists pledge) ->
+  --             over _pledgesDeleted (S.insert (NonexistentPatron pledge))
+  --          | not (pledgeProjectExists pledge) ->
+  --             over _pledgesDeleted (S.insert (NonexistentProject pledge))
+  --          | otherwise ->
+  --             -- remember, we already made sure he exists
+  --             let (Just (Patron funds)) = getPledgePatron
+  --             in return ()
 
 -- |Left inverse of 'mkPledges'. This doesn't require the pool for verification,
 -- so it's left out.
@@ -77,33 +79,66 @@ mergePledges (Pledges v s d) = S.unions [ v
                                         , S.map unSuspension s
                                         ]
 
+-- Take a 'PledgeSuspension', extract the inner 'Pledge'
+unSuspension :: PledgeSuspension -> Pledge  
+unSuspension =
+  \case
+    InsufficientFunds p -> p
+
+-- Take a 'PledgeDeletion', extract the inner 'Pledge'
 unDeletion :: PledgeDeletion -> Pledge  
 unDeletion =
   \case
     NonexistentPatron p -> p
     NonexistentProject p -> p
-    PatronRescinded p -> p
 
-unSuspension :: PledgeSuspension -> Pledge  
-unSuspension =
-  \case
-    InsufficientFunds p -> p
-    PatronSuspended p -> p
+-- -- |Will return 'Left' if the patron isn't found
+-- patronHasSufficientFunds :: Pool -> PatronIdent -> Either String Bool
+-- patronHasSufficientFunds pool patronIdent =
+--   case M.lookup patronIdent (poolPatrons pool) of
+--     Nothing -> Left "Patron not found"
+--     Just x -> Right 
 
--- |Given a 'Pool', see if the 'Ident's in a 'Pledge' refer to parties that
--- exist in the 'Pool'.
-pledgePartiesExist :: Pool -> Pledge -> Bool
-pledgePartiesExist pool pledge = 
-  and [ pledgePatronExists pool pledge
-      , pledgeProjectExists pool pledge
-      ]
+-- -- |Will return 'Left' if the project isn't in the pool
+-- projectIncomeThisRound :: Pool -> ProjectIdent -> Either String Funds
+-- projectIncomeThisRound pool projectIdent =
+--   case M.lookup projectIdent (projectsPledges projectIdent) of
+--     Nothing -> Left "Project not found"
+--     Just pledges -> Right (fromIntegral (S.size (pledgesValid pledges)))
+      
 
--- |Check to see if the Pledge's patron is in the pool
-pledgePatronExists :: Pool -> Pledge -> Bool
-pledgePatronExists (Pool patrons _ _) (Pledge patron _) =
-  elem patron (M.keys patrons)
 
--- |Check to see if the Pledge's project is in the pool
-pledgeProjectExists :: Pool -> Pledge -> Bool
-pledgeProjectExists (Pool _ projects _) (Pledge _ project) =
-  elem project (M.keys projects)
+
+-- |Given a pool, produce a map from each patron's 'Ident' to Pledges with that
+-- patron as benefactor.
+-- 
+-- Because it's actually much easier to do so, this goes ahead and effectively
+-- runs 'fixPledges' on the pledges.
+patronsToPledgesMap :: Pool -> Map PatronIdent Pledges
+patronsToPledgesMap pool@(Pool patrons _ pledges) =
+    M.mapWithKey (\k _ -> mkPledges pool (pledgesFromPatron k)) patrons
+  where
+    pledgesFromPatron patronId =
+      S.filter (\(Pledge patronId' _) -> patronId == patronId')
+               (mergePledges pledges)
+    
+
+-- |Given a pool, produce a map from each project's 'Ident' to Pledges with that
+-- project as beneficiary.
+projectsToPledgesMap :: Pool -> Map ProjectIdent Pledges
+projectsToPledgesMap pool@(Pool _ projects pledges) =
+    M.mapWithKey (\k _ -> mkPledges pool (pledgesToProject k)) projects
+  where
+    pledgesToProject projectIdent =
+      S.filter (\(Pledge _ projectIdent') -> projectIdent == projectIdent')
+               (mergePledges pledges)
+
+
+
+-- |Get the pledge patron's id, then look him up
+getPledgePatron :: Pool -> Pledge -> Maybe Patron
+getPledgePatron pool pledge = M.lookup (pledgePatron pledge) (poolPatrons pool)
+
+-- |Get the pledge benefactor's id, then look them up
+getPledgeProject :: Pool -> Pledge -> Maybe Project
+getPledgeProject pool pledge = M.lookup (pledgeProject pledge) (poolProjects pool)

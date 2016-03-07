@@ -48,6 +48,8 @@ data Pool = Pool { poolPatrons :: IdentMap Patron
 type Ident = Int64
 type PatronIdent = Int64
 type ProjectIdent = Int64
+-- |Funds are represented as a 64-bit integer for performance reasons
+type Funds = Int64
 
 -- |A 'Map' from 'Ident's to whatever
 type IdentMap = Map Ident
@@ -73,8 +75,6 @@ data Project = Project { projectFunds :: Funds
                        }
   deriving (Eq, Show)
 
--- |Funds are represented as a 64-bit integer for performance reasons
-type Funds = Int64
 
 -- |The set of pledges for a 'Pool'. These ought to be constructed such that
 -- their union is null.
@@ -98,12 +98,10 @@ instance Ord Pledge where
 -- |Reasons to delete a pledge
 data PledgeDeletion = NonexistentPatron Pledge
                     | NonexistentProject Pledge
-                    | PatronRescinded Pledge
   deriving (Eq, Show)
 
 -- |Reasons to suspend a pledge
 data PledgeSuspension = InsufficientFunds Pledge
-                      | PatronSuspended Pledge
   deriving (Eq, Show)
 
 
