@@ -51,24 +51,29 @@ instance Arbitrary Patron where
 instance Arbitrary Project where
   arbitrary = fmap Project arbitrary
 
-instance Arbitrary Pool where
-  arbitrary = do
-      patrons <- arbitrary
-      projects <- arbitrary
-      pledges <- createPledges patrons projects
-      return (Pool patrons projects (mkValid pledges))
-    where
-      mkValid pledgeSet = Pledges pledgeSet mempty mempty
+-- |Create both valid and invalid pledges
+createSomePledges :: IdentMap Patron -> IdentMap Project -> Gen (Set Pledge)
+createSomePledges patrons projects = do
+  validPledgesSet <- createValidPledges patrons projects
+  invalidPatronPledgesList <- listOf $ invalidPatronPledge patrons
+  invalidProjectPledgesList <- listOf $ invalidProjectPledge projects
+  return (S.unions [ validPledgesSet
+                   , S.fromList invalidProjectPledgesList
+                   , S.fromList invalidPatronPledgesList
+                   ])
 
-createPledges :: IdentMap Patron -> IdentMap Project -> Gen (Set Pledge)
-createPledges patrons projects
+-- |Creates only valid pledges
+createValidPledges :: IdentMap Patron -> IdentMap Project -> Gen (Set Pledge)
+createValidPledges patrons projects
   | M.null patrons || M.null projects = return mempty
-  | otherwise = S.fromList <$> listOf (createPledge patrons projects)
+  | otherwise = S.fromList <$> listOf (createValidPledge patrons projects)
 
 
 -- |Input maps mustn't be empty
-createPledge :: IdentMap Patron -> IdentMap Project -> Gen Pledge
-createPledge patronsMap projectsMap = do
+-- 
+-- This creates a valid pledge, given a set of patrons and projects
+createValidPledge :: IdentMap Patron -> IdentMap Project -> Gen Pledge
+createValidPledge patronsMap projectsMap = do
       -- select randomly from the patron ids
       patronId <- elements (M.keys patronsMap)
       -- select randomly from the project ids
@@ -79,9 +84,19 @@ createPledge patronsMap projectsMap = do
 -- |A truly arbitrary pledge; the respective ids of the benefactor and the
 -- beneficiary are generated at random, rather than picked from a list of
 -- patrons/projects already in a pool.
-genPledge :: Gen Pledge
-genPledge = Pledge <$> arbitrary <*> arbitrary
+createPledge :: Gen Pledge
+createPledge = Pledge <$> arbitrary <*> arbitrary
 
--- |Given a Pool, generate a pledge that does not satisfy 'pledgePartiesExist'
-badPledge :: Pool -> Gen Pledge
-badPledge pool = suchThat genPledge (not . pledgePartiesExist pool)
+-- |Given a bunch of patrons, generate a pledge from a nonexistent patron
+invalidPatronPledge :: IdentMap Patron -> Gen Pledge
+invalidPatronPledge map' =
+  createPledge `suchThat`
+    \(Pledge patron _) ->
+      not $ patron `elem` M.keys map'
+
+-- |Given a bunch of projects, generate a pledge from a nonexistent project
+invalidProjectPledge :: IdentMap Project -> Gen Pledge
+invalidProjectPledge map' = do
+  createPledge `suchThat`
+    \(Pledge _ project) ->
+      not $ project `elem` M.keys map'

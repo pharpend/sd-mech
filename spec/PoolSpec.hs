@@ -29,59 +29,56 @@ import Instances
 import Snowdrift.Mechanism
 
 import Control.Monad (forM_)
-import Data.Either (isLeft)
 import qualified Data.Map.Lazy as M
-import qualified Data.Set as S
 import Test.Hspec
 import Test.QuickCheck
 
 spec :: Spec
 spec = parallel $ do
-  arbitraryCheck
-  badPledgesCheck
+    arbitraryCheck
 
 -- |Checking arbitrarily-generated stuff is okay
 arbitraryCheck :: Spec
-arbitraryCheck =
-    context "Arbitrary definitions don't produce illegal results" $
-      context "Arbitrary pools" $ 
-        arbitraryPoolPledgesCheck
-  where
-    arbitraryPoolPledgesCheck =
-      context "Pledges in arbitrary pools shouldn't use IDs of nonexistent patrons or projects" $ do
-        specify "All of the pledge patrons should exist" $ do
-          property $ \pool -> do
-            let patronIds = M.keys (poolPatrons pool)
-                pledgePatrons = S.map pledgePatron (pledgesValid (poolPledges pool))
-            forM_ pledgePatrons $ \pledger ->
-              shouldSatisfy pledger (`elem` patronIds)
-        specify "All of the pledge projects should exist" $ do
-          property $ \pool -> do
-            let projectIds = M.keys (poolProjects pool)
-                pledgeProjects = S.map pledgeProject (pledgesValid (poolPledges pool))
-            forM_ pledgeProjects $ \pledger ->
-              shouldSatisfy pledger (`elem` projectIds)
-        context "mkPool" $ do
-          it "should return whatever pool we generated" $
-            property $ \pool@(Pool patrons projects pledges) ->
-              shouldBe (mkPool patrons projects (pledgesValid pledges))
-                       pool
-        context "pledgePartiesExist" $ do
-          it "should return true for each pledge in the pool" $
-            property $ \pool ->
-              forM_ (pledgesValid (poolPledges pool)) $ \pledge ->
-                shouldSatisfy pledge (pledgePartiesExist pool)
-            
+arbitraryCheck = context "Arbitrary generation" $ do
+    context "Generation of 'valid' pledges" $  do
+        context "createValidPledges" $ do
+            it "should generate pledges that refer to existent patrons" $
+                property $ \(patrons, projects) -> do
+                    pledges <- generate $ createValidPledges patrons projects
+                    forM_ pledges $ \pledge ->
+                        pledge `shouldSatisfy`
+                            \(Pledge ptrid _) ->
+                                ptrid `elem` M.keys patrons
+            it "should generate pledges that refer to existent projects" $
+                property $ \(patrons, projects) -> do
+                    pledges <- generate $ createValidPledges patrons projects
+                    forM_ pledges $ \pledge ->
+                        pledge `shouldSatisfy`
+                            \(Pledge _ prjid) ->
+                                prjid `elem` M.keys projects
 
--- |If we create some bad pledges, then the program should freak out
-badPledgesCheck :: Spec
-badPledgesCheck = context "Bad pledges" $ do
-  context "Given an arbitrary pool" $ do
-    context "Add a bunch of invalid pledges" $ do
-      context "pledgePartiesExist" $ do
-        it "should return false for each of our invalid pledges" $
-          property $ \pool -> do
-            badPledges <- S.fromList <$> generate (listOf (badPledge pool))
-            forM_ badPledges $ \bp ->
-              shouldSatisfy bp (not . pledgePartiesExist pool)
-    
+    context "Generation of invalid pledges" $
+      specify "there should be tests here" $
+        pendingWith "Laziness"
+
+    context "Pledges in arbitrary pools" $ do
+        context "pledgesValid (poolPledges pool)" $ do
+            context "Patrons" $ do
+                specify "they should all exist" $
+                    pendingWith "Arbitrary instance for Pool"
+                specify "they should all have sufficient funds" $
+                    pendingWith "Pool construction & verification in library"
+            specify "All of the pledge projects should exist" $
+                pendingWith "Arbitrary instance for Pool"
+
+        context "mkPool" $ do
+            it "should create the structure of the Pledges record" $
+                pendingWith "Nontrivial implementation"
+
+        context "fixPledges" $ do
+            it "should correct the structure of the Pledges record" $
+                pendingWith "Nontrivial implementation"
+
+        context "mergePledges" $ do
+            it "should take every pledge in every orifice, flatten it out into one set" $
+                pendingWith "Laziness"
