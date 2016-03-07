@@ -41,10 +41,18 @@ executable sd-mech-model
 test-suite spec
   type:                exitcode-stdio-1.0
   default-language:    Haskell2010
-  ghc-options:         -Wall -threaded
+  ghc-options:         -Wall -threaded -fno-warn-orphans
   hs-source-dirs:      spec
   main-is:             Spec.hs
+  default-extensions:
+    FlexibleInstances
+  other-modules:
+    Instances
+    PoolSpec
   build-depends:
       base ==4.8.*
+    , containers
     , hspec
+    , QuickCheck
     , sd-mech-model
+    , vector
