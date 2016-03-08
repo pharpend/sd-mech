@@ -32,71 +32,11 @@
 
 module Instances where
 
-import Snowdrift.Mechanism
-
-import qualified Data.Map.Lazy as M
-import Data.Set (Set)
-import qualified Data.Set as S
+import Snowdrift.Mech
 import Test.QuickCheck
 
-instance (Arbitrary x, Ord x) => Arbitrary (Set x) where
-  arbitrary = fmap S.fromList arbitrary         
-
-instance Arbitrary x => Arbitrary (IdentMap x) where
-  arbitrary = M.fromList <$> arbitrary         
-
-instance Arbitrary Patron where
-  arbitrary = fmap Patron arbitrary
-
-instance Arbitrary Project where
-  arbitrary = fmap Project arbitrary
-
--- |Create both valid and invalid pledges
-createSomePledges :: IdentMap Patron -> IdentMap Project -> Gen (Set Pledge)
-createSomePledges patrons projects = do
-  validPledgesSet <- createValidPledges patrons projects
-  invalidPatronPledgesList <- listOf $ invalidPatronPledge patrons
-  invalidProjectPledgesList <- listOf $ invalidProjectPledge projects
-  return (S.unions [ validPledgesSet
-                   , S.fromList invalidProjectPledgesList
-                   , S.fromList invalidPatronPledgesList
-                   ])
-
--- |Creates only valid pledges
-createValidPledges :: IdentMap Patron -> IdentMap Project -> Gen (Set Pledge)
-createValidPledges patrons projects
-  | M.null patrons || M.null projects = return mempty
-  | otherwise = S.fromList <$> listOf (createValidPledge patrons projects)
-
-
--- |Input maps mustn't be empty
--- 
--- This creates a valid pledge, given a set of patrons and projects
-createValidPledge :: IdentMap Patron -> IdentMap Project -> Gen Pledge
-createValidPledge patronsMap projectsMap = do
-      -- select randomly from the patron ids
-      patronId <- elements (M.keys patronsMap)
-      -- select randomly from the project ids
-      projectId <- elements (M.keys projectsMap)
-      return (Pledge patronId projectId)
-        
-
--- |A truly arbitrary pledge; the respective ids of the benefactor and the
--- beneficiary are generated at random, rather than picked from a list of
--- patrons/projects already in a pool.
-createPledge :: Gen Pledge
-createPledge = Pledge <$> arbitrary <*> arbitrary
-
--- |Given a bunch of patrons, generate a pledge from a nonexistent patron
-invalidPatronPledge :: IdentMap Patron -> Gen Pledge
-invalidPatronPledge map' =
-  createPledge `suchThat`
-    \(Pledge patron _) ->
-      not $ patron `elem` M.keys map'
-
--- |Given a bunch of projects, generate a pledge from a nonexistent project
-invalidProjectPledge :: IdentMap Project -> Gen Pledge
-invalidProjectPledge map' = do
-  createPledge `suchThat`
-    \(Pledge _ project) ->
-      not $ project `elem` M.keys map'
+instance Arbitrary Funds where
+  arbitrary = fmap Funds arbitrary
+  
+instance Arbitrary Nat where
+  arbitrary = fmap Nat arbitrary
