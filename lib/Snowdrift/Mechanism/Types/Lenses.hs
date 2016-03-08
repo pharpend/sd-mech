@@ -28,6 +28,13 @@ module Snowdrift.Mechanism.Types.Lenses where
 import Snowdrift.Mechanism.Types
 
 import Control.Lens
+import Data.Int (Int64)
+import Data.Set (Set)
+import qualified Data.Set as S
+
+-- |Little wrapper to represent the size of a set as an 'Int64'
+sizeOfSet :: Set x -> Int64
+sizeOfSet = fromIntegral . S.size
 
 -- ** 'Pool's
 makeLensesFor

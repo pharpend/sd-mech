@@ -28,7 +28,6 @@
 module Snowdrift.Mechanism
        ( module Snowdrift.Mechanism.Patron
        , module Snowdrift.Mechanism.Pledge
-       , module Snowdrift.Mechanism.Pledge.Checks
        , module Snowdrift.Mechanism.Pool
        , module Snowdrift.Mechanism.Project
        , module Snowdrift.Mechanism.Types
@@ -37,7 +36,6 @@ module Snowdrift.Mechanism
 
 import Snowdrift.Mechanism.Patron
 import Snowdrift.Mechanism.Pledge
-import Snowdrift.Mechanism.Pledge.Checks
 import Snowdrift.Mechanism.Pool
 import Snowdrift.Mechanism.Project
 import Snowdrift.Mechanism.Types

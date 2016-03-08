@@ -27,12 +27,3 @@ module Snowdrift.Mechanism.Project where
 
 import Snowdrift.Mechanism.Pledge
 import Snowdrift.Mechanism.Types
-
-import qualified Data.Map.Lazy as M
-import qualified Data.Set as S
-
-projectIncome :: Pool -> ProjectIdent -> Either String Funds
-projectIncome pool prjid =
-  case M.lookup prjid (projectsToPledgesMap pool) of
-    Nothing -> Left (mappend "Project not found with ident: " (show prjid))
-    Just pledges -> Right (fromIntegral (S.size (pledgesValid pledges)))

@@ -27,8 +27,9 @@ module Snowdrift.Mechanism.Types where
 
 import Control.Monad.State
 import Data.Int (Int64)
-import Data.Ord (comparing)
+import Data.Monoid ((<>))
 import Data.Map.Lazy (Map)
+import Data.Ord (comparing)
 import Data.Set (Set)
 
 -- |The 'Pool' is the moral equivalent of a database, for the purposes of this
@@ -84,6 +85,11 @@ data Pledges = Pledges { pledgesValid :: Set Pledge
                        }
   deriving (Eq, Show)
 
+instance Monoid Pledges where  
+  mempty = Pledges mempty mempty mempty
+  mappend (Pledges v1 s1 d1) (Pledges v2 s2 d2) =
+      Pledges (v1 <> v2) (s1 <> s2) (d1 <> d2)
+
 -- |A pledge is from a patron to a project. The amount is calculated based on
 -- how many other patrons also pledged
 data Pledge = Pledge { pledgePatron :: Ident
@@ -98,6 +104,7 @@ instance Ord Pledge where
 -- |Reasons to delete a pledge
 data PledgeDeletion = NonexistentPatron Pledge
                     | NonexistentProject Pledge
+                    | UserRescinded Pledge
   deriving (Eq, Show)
 
 -- |Get the pledge that was deleted for whatever reason
