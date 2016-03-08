@@ -47,8 +47,8 @@ data DisableReason = NonexistentProject
                    | AccountZeroed
                    | UserRescinded
                    | PendingApproval
-  deriving (Show)
+  deriving (Eq, Show)
 
 -- ** Lenses
-makeLenses ''Patron
-makeLenses ''DisableReason
+makeLensesWith camelCaseFields ''Patron
+makePrisms ''DisableReason

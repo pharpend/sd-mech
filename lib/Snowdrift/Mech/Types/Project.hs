@@ -40,4 +40,4 @@ data Project = Project { -- |We don't allow overdrawing
 
 -- ** Lenses
 
-makeLenses ''Project
+makeLensesWith camelCaseFields ''Project

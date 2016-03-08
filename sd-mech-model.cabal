@@ -29,8 +29,11 @@ library
   ghc-options:         -Wall
   hs-source-dirs:      lib
   default-extensions:
+    FunctionalDependencies
+    FlexibleInstances
     LambdaCase
     MultiWayIf
+    MultiParamTypeClasses
     TemplateHaskell
   exposed-modules:
     Snowdrift.Mech

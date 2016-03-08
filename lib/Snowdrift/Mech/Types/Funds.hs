@@ -89,6 +89,6 @@ balanceAfter = \case
 type Balance = Funds
 type WithdrawalAmount = Funds
 
--- * Lenses
-makeLenses ''Funds
-makeLenses ''Withdrawal
+-- ** Lenses
+makeLensesWith abbreviatedFields ''Funds
+makePrisms ''Withdrawal

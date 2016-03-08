@@ -89,4 +89,4 @@ pred :: Nat -> Nat
 pred n = n <-> Nat 1
 
 -- ** Lenses
-makeLenses ''Nat
+makeLensesWith abbreviatedFields ''Nat
