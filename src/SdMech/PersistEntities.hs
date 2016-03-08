@@ -1,27 +1,34 @@
 -- |Types that are built to be stored in a database.
 module SdMech.PersistEntities where
 
-import Data.Set (Set)
-
 import SdMech.Funds
 import SdMech.Util
 
 share [mkPersist sqlSettings, mkMigrate "migrateMech"]
       [persistLowerCase|
-      MPatron
+      MechPatron
           funds Funds
           externalKey Int
           ExternalPatron externalKey
-      MProject
+      MechProject
           funds Funds
           externalKey Int
           ExternalProject externalKey
-      MPledge
-          patron MPatronId
-          project MProjectId
+      MechPledge
+          patron MechPatronId
+          project MechProjectId
           UniqueMPledge patron project
       |]
 
-makeLensesWith camelCaseFields ''MPatron
-makeLensesWith camelCaseFields ''MProject
-makeLensesWith camelCaseFields ''MPledge
+
+class IsMechPatron x where
+  toMechPatron :: x -> Int
+  fromMechPatron :: Int -> x
+
+class IsMechProject x where
+  toMechProject :: x -> Int
+  fromMechProject :: Int -> x
+
+makeLensesWith camelCaseFields ''MechPatron
+makeLensesWith camelCaseFields ''MechProject
+makeLensesWith camelCaseFields ''MechPledge
