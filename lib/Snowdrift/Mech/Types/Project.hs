@@ -50,15 +50,13 @@ instance Eq Project where
 instance Ord Project where
   compare = comparing projectHandle
 
--- ** Templating
-
--- *** Lens
+-- ** Lens
 makeLensesWith camelCaseFields ''Project
 
--- *** Aeson
+-- Aeson
 instance ToJSON Project where
   toEncoding = genericToEncoding defaultOptions
 instance FromJSON Project
 
--- *** Persistent
+-- Persistent
 derivePersistFieldJSON "Project"

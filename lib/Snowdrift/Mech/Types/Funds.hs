@@ -93,13 +93,11 @@ balanceAfter = \case
 type Balance = Funds
 type WithdrawalAmount = Funds
 
--- ** TemplateHaskell
-
--- *** Lens
+-- ** Lens
 makeLensesWith abbreviatedFields ''Funds
 makePrisms ''Withdrawal
 
--- *** Aeson
+-- Aeson
 instance ToJSON Funds where
   toEncoding = genericToEncoding defaultOptions
 instance FromJSON Funds
@@ -108,6 +106,6 @@ instance ToJSON Withdrawal where
   toEncoding = genericToEncoding defaultOptions
 instance FromJSON Withdrawal
 
--- *** Persistent
+-- Persistent
 derivePersistFieldJSON "Funds"
 derivePersistFieldJSON "Withdrawal"

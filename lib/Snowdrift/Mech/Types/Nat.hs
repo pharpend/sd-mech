@@ -93,15 +93,13 @@ pred :: Nat -> Nat
 pred n = n <-> Nat 1
 
 
--- ** TemplateHaskell
-
--- *** Lens
+-- ** Lens
 makeLensesWith abbreviatedFields ''Nat
 
--- *** Aeson
+-- Aeson
 instance ToJSON Nat where
   toEncoding = genericToEncoding defaultOptions
 instance FromJSON Nat
 
--- *** Persistent
+-- Persistent
 derivePersistFieldJSON "Nat"

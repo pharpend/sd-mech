@@ -60,13 +60,11 @@ data DisableReason = NonexistentProject
                    | PendingApproval
   deriving (Eq, Show, Read, Generic)
 
--- ** TemplateHaskell  
-
--- *** Lenses
+-- ** Lens
 makeLensesWith camelCaseFields ''Patron
 makePrisms ''DisableReason
 
--- *** Aeson
+-- Aeson
 instance ToJSON Patron where
   toEncoding = genericToEncoding defaultOptions
 instance FromJSON Patron
@@ -75,6 +73,6 @@ instance ToJSON DisableReason where
   toEncoding = genericToEncoding defaultOptions
 instance FromJSON DisableReason
 
--- *** Persistent
+-- Persistent
 derivePersistFieldJSON "Patron"
 derivePersistFieldJSON "DisableReason"
