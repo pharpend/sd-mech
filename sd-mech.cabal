@@ -29,17 +29,22 @@ library
   ghc-options:         -Wall -fno-warn-missing-methods
   default-extensions:
     DeriveGeneric
+    GADTs
+    GeneralizedNewtypeDeriving
     FunctionalDependencies
     FlexibleInstances
     LambdaCase
     MultiWayIf
     MultiParamTypeClasses
+    QuasiQuotes
     TemplateHaskell
     Trustworthy
+    TypeFamilies
   exposed-modules:
     SdMech
     SdMech.Funds
     SdMech.Nat
+    SdMech.PersistEntities
     SdMech.Util
   build-depends:
       base ==4.8.*
