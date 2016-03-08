@@ -14,7 +14,8 @@ It's a project to cooperatively and sustainably fund
 **What is the mechanism?**
 
 The mechanism is the library in Snowdrift that implements the
-[Accounting information system][6] in Snowdrift.
+[Accounting information system][6] in Snowdrift. You can read more about
+it on the [Snowdrift wiki][w-mech].
 
 ## Building
 
@@ -56,3 +57,4 @@ Bug reports and feature requests can go to the
 [gh-issues]: https://github.com/pharpend/sd-mech-model/issues
 [git-install]: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
 [hs-stack]: http://docs.haskellstack.org/en/stable/README/
+[w-mech]: https://snowdrift.coop/p/snowdrift/w/en/mechanism
