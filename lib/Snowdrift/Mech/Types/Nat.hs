@@ -33,6 +33,7 @@ import Snowdrift.Mech.Util
 
 import Control.Lens
 import Data.Ord (comparing)
+import Prelude hiding (subtract)
 import Data.Word (Word64)
 
 -- * Nat
@@ -74,14 +75,14 @@ zero = Nat 0
 
 -- |This implements subtraction, sort of. @subtract a b = a - b@. However, if @a
 -- < b@, then @subtract a b = 0@.
-subtract' :: Nat -> Nat -> Nat
-subtract' m n
+subtract :: Nat -> Nat -> Nat
+subtract m n
   | m < n = mempty
   | otherwise = Nat ((unNat m) - (unNat n))
 
 -- |Infix form of 'subtract'
 (<->) :: Nat -> Nat -> Nat
-(<->) = subtract'
+(<->) = subtract
 
 -- |Successor of a natural number
 succ :: Nat -> Nat
