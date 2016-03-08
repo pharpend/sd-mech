@@ -69,10 +69,6 @@ instance Monoid Nat where
   mempty = zero
   mappend (Nat n) (Nat m) = Nat (m + n)
 
--- |>zero = Nat 0
-zero :: Nat
-zero = Nat 0
-
 -- |This implements subtraction, sort of. @subtract a b = a - b@. However, if @a
 -- < b@, then @subtract a b = 0@.
 subtract :: Nat -> Nat -> Nat

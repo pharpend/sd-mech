@@ -35,3 +35,7 @@ sizeOfSet = fromIntegral . size
 -- |Alias for 'mappend'
 (<+>) :: Monoid m => m -> m -> m
 (<+>) = mappend
+
+-- |Alias for 'mempty'
+zero :: Monoid m => m
+zero = mempty
