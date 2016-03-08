@@ -33,6 +33,13 @@
 module Instances where
 
 import Snowdrift.Mech
+
+import Data.Set (Set)
+import qualified Data.Set as S
+import Data.Text (Text)
+import qualified Data.Text as T
+import Data.Vector (Vector)
+import qualified Data.Vector as V
 import Test.QuickCheck
 
 instance Arbitrary Funds where
@@ -40,3 +47,32 @@ instance Arbitrary Funds where
   
 instance Arbitrary Nat where
   arbitrary = fmap Nat arbitrary
+
+instance Arbitrary Patron where
+  arbitrary = Patron <$> arbitrary
+                     <*> arbitrary
+                     <*> arbitrary
+                     <*> arbitrary
+
+instance Arbitrary Text where
+  arbitrary = fmap T.pack arbitrary
+
+instance (Arbitrary x, Ord x) => Arbitrary (Set x) where
+  arbitrary = fmap S.fromList arbitrary
+
+instance Arbitrary x => Arbitrary (Vector x) where
+  arbitrary = fmap V.fromList arbitrary
+
+instance Arbitrary DisableReason where
+  arbitrary = elements [ NonexistentProject
+                       , AccountZeroed
+                       , UserRescinded
+                       , PendingApproval
+                       ]
+
+instance Arbitrary Project where
+  arbitrary = Project <$> arbitrary
+                      <*> arbitrary
+                      <*> arbitrary
+
+

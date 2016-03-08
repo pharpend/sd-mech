@@ -70,9 +70,13 @@ test-suite spec
     Instances
     FundsSpec
     NatSpec
+    ProjectSpec
+    PatronSpec
   build-depends:
       base ==4.8.*
     , containers
     , hspec
     , QuickCheck
+    , text
     , sd-mech-model
+    , vector
