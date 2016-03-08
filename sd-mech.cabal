@@ -49,6 +49,7 @@ library
   build-depends:
       base ==4.8.*
     , aeson >=0.10.0.0
+    , containers
     , lens
     , persistent
     , persistent-template
