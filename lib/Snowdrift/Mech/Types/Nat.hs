@@ -32,9 +32,12 @@ module Snowdrift.Mech.Types.Nat where
 import Snowdrift.Mech.Util
 
 import Control.Lens
+import Data.Aeson
 import Data.Ord (comparing)
-import Prelude hiding (subtract)
 import Data.Word (Word64)
+import Database.Persist.TH
+import GHC.Generics
+import Prelude hiding (subtract)
 
 -- * Nat
 
@@ -51,6 +54,7 @@ import Data.Word (Word64)
 -- However, one of the Peano axioms is not satisfied. With 'Nat', there is a
 -- number @n@ such that @'succ' n = 0@. That being the upper-bound of 'Word64'.
 newtype Nat = Nat { unNat :: Word64 }
+  deriving (Generic)
 
 instance Show Nat where
   show = show . unNat
@@ -88,5 +92,16 @@ succ n = n <+> Nat 1
 pred :: Nat -> Nat
 pred n = n <-> Nat 1
 
--- ** Lenses
+
+-- ** TemplateHaskell
+
+-- *** Lens
 makeLensesWith abbreviatedFields ''Nat
+
+-- *** Aeson
+instance ToJSON Nat where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON Nat
+
+-- *** Persistent
+derivePersistFieldJSON "Nat"

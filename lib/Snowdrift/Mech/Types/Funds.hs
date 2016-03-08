@@ -28,8 +28,11 @@
 module Snowdrift.Mech.Types.Funds where
 
 import Control.Lens
+import Data.Aeson
 import Data.Ord (comparing)
 import Data.Word (Word64)
+import Database.Persist.TH
+import GHC.Generics
 
 -- * Funds
 
@@ -40,9 +43,10 @@ import Data.Word (Word64)
 -- Abstractly, instead of dollars and cents, funds are represented as a number
 -- of 'mills'. A 'mill' is some fraction of a US cent.
 newtype Funds = Funds { unFunds :: Word64 }
+  deriving (Generic)
 
 instance Show Funds where
-  show (Funds n) =  show n
+  show (Funds n) = show n
 
 instance Eq Funds where
   Funds a == Funds b = a == b
@@ -77,7 +81,7 @@ withdraw funds quantity
 -- |The result of a withdrawal
 data Withdrawal = GoodWithdrawal WithdrawalAmount Balance
                 | FundsEmpty WithdrawalAmount
-  deriving Show
+  deriving (Show, Generic)
 
 -- |Calculates the balance remaining in the account after a withdrawal
 balanceAfter :: Withdrawal -> Balance
@@ -89,6 +93,21 @@ balanceAfter = \case
 type Balance = Funds
 type WithdrawalAmount = Funds
 
--- ** Lenses
+-- ** TemplateHaskell
+
+-- *** Lens
 makeLensesWith abbreviatedFields ''Funds
 makePrisms ''Withdrawal
+
+-- *** Aeson
+instance ToJSON Funds where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON Funds
+
+instance ToJSON Withdrawal where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON Withdrawal
+
+-- *** Persistent
+derivePersistFieldJSON "Funds"
+derivePersistFieldJSON "Withdrawal"
