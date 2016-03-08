@@ -66,7 +66,7 @@ instance Ord Nat where
 -- 
 -- That is, for all @n, m :: Nat@, @n <> m = m <> n@.
 instance Monoid Nat where
-  mempty = zero
+  mempty = Nat 0
   mappend (Nat n) (Nat m) = Nat (m + n)
 
 -- |This implements subtraction, sort of. @subtract a b = a - b@. However, if @a
