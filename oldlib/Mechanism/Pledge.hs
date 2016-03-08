@@ -39,11 +39,11 @@ import qualified Data.Set as S
 -- 
 -- This is a rather inefficient operation.
 checkPledges :: Pool -> Pledges
-checkPledges pool =
-                          
+checkPledges pool = undefined
   where
     cleaveValidPledgesWithoutFunds pool pledges =
-      snd (flip runState )
+      undefined
+      -- snd (flip runState )
     -- takes 'nonDeleted', maps 'PendingApproval' onto it
     pledgesPendingApproval = S.map PendingApproval nonDeleted
     patronFunds pool pledge =
@@ -58,7 +58,8 @@ checkPledges pool =
 cleavePoorPeople :: IdentMap Patron -> Set Pledge -> Set Pledge
 cleavePoorPeople patrons pledges =
     for pledges $ \pledge -> 
-      if patronFunds patrons pledge < S.size
+      -- if patronFunds patrons pledge < S.size
+      undefined
   where for = flip fmap
         patronFunds' patrons pledge =
           patronFunds (lookupUnsafe patrons (pledgePatron pledge))
