@@ -33,14 +33,14 @@ import Test.Hspec
 import Test.QuickCheck
 
 spec :: Spec
-spec = parallel $ do
+spec = do
     context "Lemmas about natural numbers" $ do
         specify "pred . succ = id" $ 
             property $ \n -> pred (succ n) `shouldBe` n
         context "Addition" $ do
             specify "Identity: forall n, n + 0 = n" $ 
                 property $ \n ->
-                    (n <+> zero) `shouldBe` n
+                    (n <+> zero) `shouldBe` (n :: Nat)
             specify "Symmetry: forall n m, m + n = n + m" $ 
                 property $ \(n, m) ->
                     shouldBe (n <+> m) (m <+> n :: Nat)
