@@ -15,19 +15,40 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -- | 
--- Module      : Snowdrift.Mech
--- Description : Mechanism model for snowdrift
+-- Module      : Snowdrift.Mech.Types.Patron
+-- Description : The types for the Snowdrift mechanism
 -- Copyright   : Copyright (c) 2012-2016, Snowdrift.coop.
 -- License     : AGPL-3
 -- Maintainer  : dev@lists.snowdrift.coop
 -- Stability   : experimental
 -- Portability : POSIX
--- 
 
-module Snowdrift.Mech
-       ( module Snowdrift.Mech.Types
-       , module Snowdrift.Mech.Util
-       ) where
+module Snowdrift.Mech.Types.Patron where
 
-import Snowdrift.Mech.Types
-import Snowdrift.Mech.Util
+import Snowdrift.Mech.Types.Funds
+import Snowdrift.Mech.Types.Project
+
+import Control.Lens
+import Data.Set (Set)
+import Data.Vector (Vector)
+
+-- ** Patrons and projects
+
+-- |A 'Patron' has some funds, and a set of pledges.
+data Patron = Patron { patronFunds :: Funds
+                     , patronActivePledges :: Set Project
+                     , patronInactivePledges :: Vector (Project, DisableReason)
+                     }
+  deriving (Show)
+
+
+-- |The reason a pledge might have been disabled.
+data DisableReason = NonexistentProject
+                   | AccountZeroed
+                   | UserRescinded
+                   | PendingApproval
+  deriving (Show)
+
+-- ** Lenses
+makeLenses ''Patron
+makeLenses ''DisableReason

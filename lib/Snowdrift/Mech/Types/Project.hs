@@ -15,19 +15,29 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -- | 
--- Module      : Snowdrift.Mech
--- Description : Mechanism model for snowdrift
+-- Module      : Snowdrift.Mech.Types.Project
+-- Description : The 'Project' type
 -- Copyright   : Copyright (c) 2012-2016, Snowdrift.coop.
 -- License     : AGPL-3
 -- Maintainer  : dev@lists.snowdrift.coop
 -- Stability   : experimental
 -- Portability : POSIX
--- 
 
-module Snowdrift.Mech
-       ( module Snowdrift.Mech.Types
-       , module Snowdrift.Mech.Util
-       ) where
+module Snowdrift.Mech.Types.Project where
 
-import Snowdrift.Mech.Types
-import Snowdrift.Mech.Util
+import Snowdrift.Mech.Types.Funds
+import Snowdrift.Mech.Types.Nat
+
+import Control.Lens
+
+-- |A 'Project' has some funds, and a number of pledges.
+data Project = Project { -- |We don't allow overdrawing
+                         projectFunds :: Funds
+                       , -- |Fewer than zero pledges doesn't make any sense. 
+                         projectNumPledges :: Nat
+                       }
+  deriving (Show)
+
+-- ** Lenses
+
+makeLenses ''Project

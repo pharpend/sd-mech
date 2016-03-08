@@ -38,15 +38,8 @@ library
     Snowdrift.Mech.Types
     Snowdrift.Mech.Types.Funds
     Snowdrift.Mech.Types.Nat
-    
-    -- Old mechanism, soon to be deleted
-    -- Snowdrift.Mechanism
-    -- Snowdrift.Mechanism.Patron
-    -- Snowdrift.Mechanism.Pledge
-    -- Snowdrift.Mechanism.Pool
-    -- Snowdrift.Mechanism.Project
-    -- Snowdrift.Mechanism.Types
-    -- Snowdrift.Mechanism.Types.Lenses
+    Snowdrift.Mech.Types.Patron
+    Snowdrift.Mech.Types.Project
   build-depends:
       base ==4.8.*
     , containers

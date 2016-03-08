@@ -23,57 +23,17 @@
 -- Stability   : experimental
 -- Portability : POSIX
 -- 
--- This module contains types and lenses for the mechanism.
+-- This module merely re-exports its submodules
 
-module Snowdrift.Mech.Types where
+module Snowdrift.Mech.Types
+       ( module Snowdrift.Mech.Types.Funds
+       , module Snowdrift.Mech.Types.Nat
+       , module Snowdrift.Mech.Types.Patron
+       , module Snowdrift.Mech.Types.Project
+       ) where
 
 import Snowdrift.Mech.Types.Funds
 import Snowdrift.Mech.Types.Nat
+import Snowdrift.Mech.Types.Patron
+import Snowdrift.Mech.Types.Project
 
-import Control.Lens
-import Data.Set (Set)
-import Data.Vector (Vector)
-
--- ** Patrons and projects
-
--- |A 'Patron' has some funds, and a set of pledges.
-data Patron = Patron { patronFunds :: Funds
-                     , patronActivePledges :: Set Project
-                     , patronInactivePledges :: Vector (Project, DisableReason)
-                     }
-  deriving (Show)
-
-
--- |A 'Project' has some funds, and a number of pledges.
-data Project = Project { -- |We don't allow overdrawing
-                         projectFunds :: Funds
-                       , -- |Fewer than zero pledges doesn't make any sense. 
-                         projectNumPledges :: Nat
-                       }
-  deriving (Show)
-
--- |The reason a pledge might have been disabled.
-data DisableReason = NonexistentProject
-                   | AccountZeroed
-                   | UserRescinded
-                   | PendingApproval
-  deriving (Show)
-
-
-
--- ** Lenses
-
-makeLensesFor
-  [ ("patronFunds", "_patronFunds")
-  , ("patronActivePledges", "_patronActivePledges")
-  , ("patronInactivePledges", "_patronInactivePledges")
-  ]
-  ''Patron
-
-makeLensesFor
-  [ ("projectFunds", "_projectFunds")
-  , ("projectNumPledges", "_projectNumPledges")
-  ]
-  ''Project
-
-makeLenses ''DisableReason
