@@ -69,11 +69,17 @@ test-suite spec
   ghc-options:         -Wall -threaded -fno-warn-orphans
   default-extensions:
     FlexibleInstances
+    FunctionalDependencies
+    GeneralizedNewtypeDeriving
     LambdaCase
+    MultiParamTypeClasses
     OverloadedStrings
+    TemplateHaskell
     Trustworthy
   other-modules:
     FundsSpec
+    MarkovSpec
+    MarkovTypes
   build-depends:
       base ==4.8.*
     , hspec
