@@ -18,6 +18,7 @@ cabal-version:       >=1.10
 extra-source-files:  
   LICENSE
   README.md
+  sdms.hs
 
 source-repository head
   type:         git
