@@ -1,11 +1,13 @@
 -- |Tests for the 'Funds' type
 module FundsSpec where
 
-import Instances ()
 import SdMech
 
 import Test.Hspec
 import Test.QuickCheck
+
+instance Arbitrary Funds where
+  arbitrary = fmap Funds arbitrary
 
 spec :: Spec
 spec = do

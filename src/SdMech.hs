@@ -4,6 +4,5 @@ module SdMech
 
 import SdMech.Funds as SdMech
 import SdMech.Mutations as SdMech
-import SdMech.Nat as SdMech
 import SdMech.Types as SdMech
 import SdMech.Util as SdMech

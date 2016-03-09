@@ -45,7 +45,6 @@ library
     SdMech
     SdMech.Funds
     SdMech.Mutations
-    SdMech.Nat
     SdMech.Types
     SdMech.Util
   build-depends:
@@ -74,9 +73,7 @@ test-suite pure
     OverloadedStrings
     Trustworthy
   other-modules:
-    Instances
     FundsSpec
-    NatSpec
   build-depends:
       base ==4.8.*
     , hspec
