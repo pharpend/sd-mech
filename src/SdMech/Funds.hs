@@ -41,6 +41,30 @@ instance Monoid Funds where
   mempty = Funds 0
   mappend (Funds x) (Funds y) = Funds (x + y)
 
+-- |Multiplication
+infixl 6 <.>
+(<.>) :: Funds -> Funds -> Funds
+Funds x <.> Funds y = Funds (x * y)
+
+-- |Prefix form of '(<.>)'
+times :: Funds -> Funds -> Funds
+times = (<.>)
+
+-- |Multiplicative identity
+one :: Funds
+one = Funds 1
+
+-- |Conversion to 'Int'. Careful, for very large 'Funds' values, this will
+-- produce negative 'Int' values
+fundsToInt :: Funds -> Int
+fundsToInt (Funds n) = fromIntegral n
+
+-- |Fails on negative numbers
+intToFunds :: Int -> Maybe Funds
+intToFunds z
+  | z < 0 = Nothing
+  | otherwise = Just $ Funds (fromIntegral z)
+
 -- ** Withdrawals
 
 -- |Withdraw funds; this is morally equivalent to subtraction. However, we don't
