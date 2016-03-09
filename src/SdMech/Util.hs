@@ -14,6 +14,7 @@ import Database.Persist.TH
 import GHC.Generics
 
 -- |Alias for 'mappend'
+infixl 5 <+>
 (<+>) :: Monoid m => m -> m -> m
 (<+>) = mappend
 
