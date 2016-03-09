@@ -27,12 +27,21 @@ beyond installing it. (I think).
     stack build
     
 That will just compile the library, which isn't very interesting on its
-own. You can run the test suite by running
+own. 
+
+There's a test suite, which you can run. Before you do so, you need to
+do some postgres voodoo. Luckily, we have it automated
+
+    ./sdms.hs init
+
+If you get any weird database errors in the future, try running
+`./sdms.hs reset`. If that doesn't fix it, it's likely unfixable. You
+can run the test suite by running
 
      stack test
 
 and you'll get a nice colorful output explaining that everything is
-peachy (or maybe not).
+peachy (or ~~maybe~~ probably not).
 
 ### A note on the test suite
 
