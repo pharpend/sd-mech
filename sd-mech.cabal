@@ -61,8 +61,8 @@ library
     , vector
 
 -- Tests for pure code
-test-suite pure
-  hs-source-dirs:      tests/pure
+test-suite spec
+  hs-source-dirs:      spec
   main-is:             Spec.hs
   type:                exitcode-stdio-1.0
   default-language:    Haskell2010
@@ -80,8 +80,8 @@ test-suite pure
     , QuickCheck
     , sd-mech
 
-test-suite impure
-  hs-source-dirs:      tests/impure
+test-suite chreekat
+  hs-source-dirs:      chreekat
   main-is:             Main.hs
   type:                exitcode-stdio-1.0
   default-language:    Haskell2010
