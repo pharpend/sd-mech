@@ -83,15 +83,20 @@ test-suite impure
   ghc-options:         -Wall -threaded -fno-warn-orphans
   default-extensions:
     OverloadedStrings
+    LambdaCase
     Trustworthy
   other-modules:
     Test.Tasty.Persist.Postgres
   build-depends:
       base ==4.8.*
-    , postgresql-simple
-    , persistent-postgresql
+    , bytestring
+    , directory
     , monad-logger
+    , persistent
+    , persistent-postgresql
+    , postgresql-simple
     , random
+    , resource-pool
     , sd-mech
     , tasty
     , tasty-hunit
