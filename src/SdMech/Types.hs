@@ -1,8 +1,25 @@
--- |Types that are built to be stored in a database.
-module SdMech.PersistEntities where
+-- |The fancy types for the mechanism
+module SdMech.Types where
 
+import Control.Error
+import Database.Persist.Sql
 import SdMech.Funds
 import SdMech.Util
+
+type MechM = SqlPersistM
+type EMechM = ExceptT MechError SqlPersistM
+
+-- Convert a 'MechM' value to an 'EMechM' value.
+right :: MechM x -> EMechM x
+right foo = ExceptT (fmap Right foo)
+
+data MechError = ExistentPatron
+               | ExistentProject
+               | NoSuchPatron
+               | NoSuchProject
+               | InsufficientFunds
+               | ExistentPledge
+    deriving (Eq, Show)
 
 share [mkPersist sqlSettings, mkMigrate "migrateMech"]
       [persistLowerCase|
@@ -10,14 +27,19 @@ share [mkPersist sqlSettings, mkMigrate "migrateMech"]
           funds Funds
           externalKey Int
           ExternalPatron externalKey
+          UniqueMechPatron externalKey
+          deriving Show
       MechProject
           funds Funds
           externalKey Int
           ExternalProject externalKey
+          UniqueMechProject externalKey
+          deriving Show
       MechPledge
           patron MechPatronId
           project MechProjectId
           UniqueMPledge patron project
+          deriving Show
       |]
 
 
@@ -29,6 +51,10 @@ class IsMechProject x where
   toMechProject :: x -> Int
   fromMechProject :: Int -> x
 
+-- **Lenses
+
+makePrisms ''MechError
 makeLensesWith camelCaseFields ''MechPatron
 makeLensesWith camelCaseFields ''MechProject
 makeLensesWith camelCaseFields ''MechPledge
+

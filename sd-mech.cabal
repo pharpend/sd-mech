@@ -46,14 +46,20 @@ library
     SdMech.Funds
     SdMech.Mutations
     SdMech.Nat
-    SdMech.PersistEntities
+    SdMech.Types
     SdMech.Util
   build-depends:
       base ==4.8.*
     , aeson >=0.10.0.0
+    , errors
+    , esqueleto
     , lens
+    , monad-logger
+    , mtl
     , persistent
     , persistent-template
+    , resourcet
+    , vector
 
 -- Tests for pure code
 test-suite pure
