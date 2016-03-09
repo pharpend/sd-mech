@@ -61,6 +61,7 @@ Bug reports and feature requests can go to the
 [hs]: https://www.haskell.org/
 [hs-stack]: http://docs.haskellstack.org/en/stable/README/
 [l]: LICENSE
+[pg]: https://wiki.postgresql.org/wiki/Detailed_installation_guides
 [sd-how]: https://snowdrift.coop/how-it-works
 [sd-mech]: https://snowdrift.coop/p/snowdrift/w/en/mechanism
 [w-free]: https://en.wikipedia.org/wiki/Free_license
