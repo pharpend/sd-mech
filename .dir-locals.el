@@ -5,4 +5,5 @@
                   (haskell-indentation-where-pre-offset . 2)
                   (haskell-indentation-where-post-offset . 2)
                   (evil-shift-width . 2)
-                  (haskell-tags-on-save . t)))
+                  (haskell-tags-on-save . t)
+		  (hindent-style . "gibiansky"))

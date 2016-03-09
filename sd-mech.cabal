@@ -53,8 +53,9 @@ library
     , persistent
     , persistent-template
 
-test-suite spec
-  hs-source-dirs:      spec
+-- Tests for pure code
+test-suite pure
+  hs-source-dirs:      tests/pure
   main-is:             Spec.hs
   type:                exitcode-stdio-1.0
   default-language:    Haskell2010
@@ -62,6 +63,7 @@ test-suite spec
   default-extensions:
     FlexibleInstances
     LambdaCase
+    OverloadedStrings
     Trustworthy
   other-modules:
     Instances
@@ -72,3 +74,25 @@ test-suite spec
     , hspec
     , QuickCheck
     , sd-mech
+
+test-suite impure
+  hs-source-dirs:      tests/impure
+  main-is:             Main.hs
+  type:                exitcode-stdio-1.0
+  default-language:    Haskell2010
+  ghc-options:         -Wall -threaded -fno-warn-orphans
+  default-extensions:
+    OverloadedStrings
+    Trustworthy
+  other-modules:
+    Test.Tasty.Persist.Postgres
+  build-depends:
+      base ==4.8.*
+    , postgresql-simple
+    , persistent-postgresql
+    , monad-logger
+    , random
+    , sd-mech
+    , tasty
+    , tasty-hunit
+    , transformers
