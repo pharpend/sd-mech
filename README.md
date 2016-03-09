@@ -1,26 +1,25 @@
-# sd-mech-model
+# sd-mech
 
-This is a model for the "mechanism" of [Snowdrift][1]. It is written in
-[Haskell][2] and licensed under the
-[GNU Affero General Public License, version 3 or later][3] (AGPL). You
-can read a copy of the AGPL in the [LICENSE](LICENSE) file.
+This is an implementation of the [Snowdrift mechanism][sd-mech]. It is
+written in [Haskell][hs] and licensed under the
+[GNU Affero General Public License, version 3 or later][agpl]
+(AGPL). You can read a copy of the AGPL in the [LICENSE][l] file.
 
 **What is Snowdrift?**
 
 It's a project to cooperatively and sustainably fund
-[freely-licensed works][4]. For more information, see the
-[How it works page][5].
+[freely-licensed works][w-free]. For more information, see the
+[How it works page][sd-how].
 
-**What is the mechanism?**
-
-The mechanism is the library in Snowdrift that implements the
-[Accounting information system][6] in Snowdrift. You can read more about
-it on the [Snowdrift wiki][w-mech].
+The mechanism is described in great detail on
+[the Snowdrift wiki][sd-mech].
 
 ## Building
 
 To build this software, you need [Git][git-install] and
-[the Haskell Stack][hs-stack].
+[the Haskell Stack][hs-stack]. You also need to have [PostgreSQL][pg]
+installed; however, you do not need to perform any additional setup
+beyond installing it. (I think).
 
     git clone https://github.com/pharpend/sd-mech-model.git
     cd sd-mech-model
@@ -35,6 +34,14 @@ own. You can run the test suite by running
 and you'll get a nice colorful output explaining that everything is
 peachy (or maybe not).
 
+### A note on the test suite
+
+There are actually two of them: one called `pure` and another called
+`impure`. In Haskell, code is conceptually split into "pure" code (code
+that does not have side effects) and "impure" code (code that can
+actually do stuff). As you might have guessed, one suite tests the pure
+code, and the other tests the impure code.
+
 ## Contacting the authors
 
 Bug reports and feature requests can go to the
@@ -48,13 +55,12 @@ Bug reports and feature requests can go to the
     + IRC: `#snowdrift` on FreeNode
     + development mailing list: `dev@lists.snowdrift.coop`
 
-[1]: https://snowdrift.coop
-[2]: https://www.haskell.org/
-[3]: https://gnu.org/licenses/agpl
-[4]: https://en.wikipedia.org/wiki/Free_license
-[5]: https://snowdrift.coop/how-it-works
-[6]: https://en.wikipedia.org/wiki/Accounting_information_system
+[agpl]: https://gnu.org/licenses/agpl
 [gh-issues]: https://github.com/pharpend/sd-mech-model/issues
 [git-install]: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+[hs]: https://www.haskell.org/
 [hs-stack]: http://docs.haskellstack.org/en/stable/README/
-[w-mech]: https://snowdrift.coop/p/snowdrift/w/en/mechanism
+[l]: LICENSE
+[sd-how]: https://snowdrift.coop/how-it-works
+[sd-mech]: https://snowdrift.coop/p/snowdrift/w/en/mechanism
+[w-free]: https://en.wikipedia.org/wiki/Free_license
