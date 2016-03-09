@@ -21,8 +21,8 @@ To build this software, you need [Git][git-install] and
 installed; however, you do not need to perform any additional setup
 beyond installing it. (I think).
 
-    git clone https://github.com/pharpend/sd-mech-model.git
-    cd sd-mech-model
+    git clone https://github.com/pharpend/sd-mech.git
+    cd sd-mech
     stack setup
     stack build
     
