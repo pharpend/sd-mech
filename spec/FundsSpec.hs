@@ -30,3 +30,9 @@ spec = do
       specify "Antiassociativity: forall a b c, (bw (bw a b) c) = (bw a (b + c))" $ 
         property $ \(a, b, c) ->
           (bw (bw a b) c) `shouldBe `(bw a (b <+> c))
+    context "Multiplication (I don't have a silly accounting word for it)" $ do
+      specify "Identity: forall n, n * 1 = n" $ pending
+      specify "Symmetry: forall n m, m * n = n * m" $ pending
+      specify "Associativity: forall a b c, (a * b) * c = a * (b * c)" $ pending
+      specify "Annihilation: forall n, n * 0 = 0" $ pending
+      specify "Distribution: forall a b c, a * (b + c) = a*b + a*c)" $ pending
