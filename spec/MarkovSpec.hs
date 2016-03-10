@@ -11,8 +11,6 @@ import Control.Monad.Logger
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
 import Data.Either
-import Data.Maybe
-import qualified Data.Vector as V
 import qualified Database.Persist as P
 import Database.Persist.Postgresql
 import Database.PostgreSQL.Simple
@@ -30,8 +28,8 @@ spec = context "Randomly-generated simulation" $ do
 
 runMechMSpec :: MechM Spec -> Spec  
 runMechMSpec action = do
-  spec <- runIO $ withLocalCluster action
-  spec
+  spec' <- runIO $ withLocalCluster action
+  spec'
 
 runIteration :: [Event] -> MechM Spec
 runIteration events = do
