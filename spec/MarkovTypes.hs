@@ -20,14 +20,14 @@ newtype Prj = Prj { prjIdent :: Int }
 
 -- |Events that can happen
 data Event = RunIteration
-           | PatrSpawn Patr
+           | PatrSpawn Patr Funds
            | PatrDie Patr
            | PatrDeposit Patr Funds
            | PatrWithdraw Patr Funds
            | PatrMkPledge Patr Prj
            | PatrRescindPledge Patr Prj
            | PatrSuspendPledge Patr Prj
-           | PrjSpawn Prj
+           | PrjSpawn Prj Funds
            | PrjDie Prj
            | PrjDeposit Prj Funds
            | PrjWithdraw Prj Funds
@@ -50,14 +50,14 @@ instance IsMechProject Prj where
 instance Arbitrary Event where
     arbitrary =
         oneof [ pure RunIteration
-              , PatrSpawn <$> arbitrary
+              , PatrSpawn <$> arbitrary <*> arbitrary
               , PatrDie <$> arbitrary
               , PatrDeposit <$> arbitrary <*> arbitrary
               , PatrWithdraw <$> arbitrary <*> arbitrary
               , PatrMkPledge <$> arbitrary <*> arbitrary
               , PatrRescindPledge <$> arbitrary <*> arbitrary
               , PatrSuspendPledge <$> arbitrary <*> arbitrary
-              , PrjSpawn <$> arbitrary
+              , PrjSpawn <$> arbitrary <*> arbitrary
               , PrjDie <$> arbitrary
               , PrjDeposit <$> arbitrary <*> arbitrary
               , PrjWithdraw <$> arbitrary <*> arbitrary
