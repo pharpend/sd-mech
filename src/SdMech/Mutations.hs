@@ -12,6 +12,12 @@ import Database.Esqueleto
 import Data.Vector (Vector)
 import qualified Data.Vector as V
 
+-- |Select a patron
+selectPatron :: IsMechPatron a => a -> EMechM (Entity MechPatron)
+selectPatron a =
+    failWithM NoSuchPatron $
+      P.getBy (UniqueMechPatron (toMechPatron a))
+
 -- |Insert a new patron
 newPatron :: IsMechPatron a => Funds -> a -> EMechM (Key MechPatron)
 newPatron funds' a =
