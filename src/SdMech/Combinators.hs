@@ -194,5 +194,5 @@ insertPledge a r = do
     if not patronHasFunds
         then throwError InsufficientFunds
         else failWithM ExistentPledge $
-            P.insertUnique (MechPledge patronK projectK)
+            P.insertUnique (MechPledge patronK projectK StActive)
 

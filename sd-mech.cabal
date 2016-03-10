@@ -46,6 +46,7 @@ library
     SdMech.Combinators
     SdMech.Funds
     SdMech.Types
+    SdMech.Types.MechPledgeStatus
     SdMech.Util
   build-depends:
       base ==4.8.*

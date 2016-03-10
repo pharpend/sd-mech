@@ -1,11 +1,13 @@
 -- |The fancy types for the mechanism
-module SdMech.Types where
+module SdMech.Types (module SdMech.Types) where
+
+import SdMech.Funds
+import SdMech.Util
+import SdMech.Types.MechPledgeStatus as SdMech.Types
 
 import Control.Error
 import Data.Ord (comparing)
 import Database.Persist.Sql
-import SdMech.Funds
-import SdMech.Util
 
 type EMechM = ExceptT MechError SqlPersistM
 type MechM = SqlPersistM
