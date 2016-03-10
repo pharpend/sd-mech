@@ -60,7 +60,6 @@ library
     , resourcet
     , vector
 
--- Tests for pure code
 test-suite spec
   hs-source-dirs:      spec
   main-is:             Spec.hs
@@ -82,9 +81,15 @@ test-suite spec
     MarkovTypes
   build-depends:
       base ==4.8.*
+    , bytestring
+    , directory
     , hspec
+    , monad-logger
+    , persistent-postgresql
+    , postgresql-simple
     , QuickCheck
     , sd-mech
+    , transformers
 
 test-suite chreekat
   hs-source-dirs:      chreekat

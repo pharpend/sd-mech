@@ -6,12 +6,19 @@ import Database.Persist.Sql
 import SdMech.Funds
 import SdMech.Util
 
-type MechM = SqlPersistM
 type EMechM = ExceptT MechError SqlPersistM
+type MechM = SqlPersistM
 
--- Convert a 'MechM' value to an 'EMechM' value.
+runMechM :: MechM x -> ConnectionPool -> IO x
+runMechM = runSqlPersistMPool
+
+-- |Convert a 'MechM' value to an 'EMechM' value.
 right :: MechM x -> EMechM x
 right foo = ExceptT (fmap Right foo)
+
+-- |Convert an 'EMechM' value into a 'MechM' value
+coRight :: EMechM x -> MechM (Either MechError x)
+coRight = runExceptT
 
 data MechError = ExistentPatron
                | ExistentProject
