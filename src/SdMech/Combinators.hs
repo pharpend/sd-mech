@@ -43,6 +43,16 @@ getPatronPledges r = do
         return pledge
     return $ V.fromList pledges
 
+-- |See if the patron has enough funds to pledge to project.
+patronHasSufficientFundsFor :: (IsMechPatron a, IsMechProject r)
+                            => a -> r -> EMechM Bool
+patronHasSufficientFundsFor patr prj = do
+    Entity _ patron <- selectPatron patr
+    fn <- fundsNeededForProject prj
+    return $ (mechPatronFunds patron) >= fn
+    
+    
+
 --------------------------------------------------------------------------------
 -- * Projects
 
@@ -75,8 +85,36 @@ getProjectPledges r = do
         return pledge
     return $ V.fromList pledges
 
+-- |Get the number of pledges of the project
+numberOfPledgesToProject :: IsMechProject r => r -> EMechM Int
+numberOfPledgesToProject = fmap V.length . getProjectPledges
+
+-- |3 times the 'numberOfPledgesToProject'
+fundsNeededForProject :: IsMechProject r => r -> EMechM Funds
+fundsNeededForProject prj = do
+    monthlyIncome <-
+        fmap intToFunds (numberOfPledgesToProject prj) >>= \case
+            Nothing -> throwError IntToFundsConversionError
+            Just x -> return x
+    return $ Funds 3 <.> monthlyIncome
+
 --------------------------------------------------------------------------------
 -- * Pledges
+
+-- |Select a pledge
+--
+-- Will throw errors if
+--
+-- - Patron does not exist ('NoSuchPatron')
+-- - Project does not exist ('NoSuchProject')
+-- - Pledge does not exist ('NoSuchPledge')
+selectPledge :: (IsMechPatron a, IsMechProject r)
+             => a -> r -> EMechM (Entity MechPledge)
+selectPledge a r = do
+    Entity patronK _ <- selectPatron a
+    Entity projectK _ <- selectProject r
+    failWithM NoSuchPledge $ P.getBy $
+        UniqueMechPledge patronK projectK
 
 -- |Insert a pledge
 --
@@ -90,12 +128,11 @@ getProjectPledges r = do
 insertPledge :: (IsMechPatron a, IsMechProject r)
              => a -> r -> EMechM (Key MechPledge)
 insertPledge a r = do
-    Entity patronK patronV <- failWithM NoSuchPatron $
-        P.getBy $ UniqueMechPatron (toMechPatron a)
-    Entity projectK _ <- failWithM NoSuchProject $
-        P.getBy $ UniqueMechProject (toMechProject r)
-    numberOfPledgesToProject <- V.length <$> (getProjectPledges r)
-    if numberOfPledgesToProject > (fundsToInt (Funds 3 `times` (view funds patronV)))
+    Entity patronK _ <- selectPatron a
+    Entity projectK _ <- selectProject r
+    patronHasFunds <- patronHasSufficientFundsFor a r
+    if not patronHasFunds
         then throwError InsufficientFunds
         else failWithM ExistentPledge $
             P.insertUnique (MechPledge patronK projectK)
+
