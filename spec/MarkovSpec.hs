@@ -104,14 +104,33 @@ runEvent e = case e of
                 pendingWith "pharpend's laziness"
 
     PrjSpawn prj funds' -> do
-        return $ context (show e) $
-            specify "there should be a test here" $
-                pendingWith "pharpend's laziness"
+      -- Check to see if the project exists
+      projectExists <- fmap isRight $ coRight $ selectProject prj
+      -- Insert him into the table
+      result <- coRight $ newProject funds' prj
+      -- See how much money he has
+      resultFunds <- coRight $ do
+          Entity _ val <- selectProject prj
+          return (view funds val)
+      return $ context (show e) $
+        if projectExists
+          then context "Project already exists" $
+            it "should return Left ExistentProject" $
+              result `shouldBe` Left ExistentProject
+          else context "Project does not already exist" $ do
+            it "should return Right" $
+              result `shouldSatisfy` isRight
+            he "should have some money in the bank" $
+              resultFunds `shouldBe` Right funds'
 
     PrjDie prj -> do
-        return $ context (show e) $
-            specify "there should be a test here" $
-                pendingWith "pharpend's laziness"
+      -- Kill him
+      deleteProject prj
+      -- Check to see if the project exists after he's dead
+      projectExists <- fmap isRight $ coRight $ selectProject prj
+      return $ context (show e) $
+        he "should no longer exist" $
+          projectExists `shouldBe` False
 
     PrjDeposit prj funds' -> do
         return $ context (show e) $
