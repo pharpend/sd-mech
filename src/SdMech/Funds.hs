@@ -78,7 +78,7 @@ withdraw funds quantity
 -- |The result of a withdrawal
 data Withdrawal = GoodWithdrawal WithdrawalAmount Balance
                 | FundsEmpty WithdrawalAmount
-  deriving (Show, Generic)
+  deriving (Eq, Show, Generic)
 
 -- |Calculates the balance remaining in the account after a withdrawal
 balanceAfter :: Withdrawal -> Balance

@@ -130,8 +130,27 @@ runEvent e = case e of
       withdrawal <- coRight $ patronWithdraw patr amount
       patrPostFunds <- coRight $ patronFunds patr
       return $ context (show e) $
-        specify "there should be a test here" $
-          pendingWith "pharpend's laziness"
+        if not patronExists
+          then context "No such patron" $
+            context "nonexistence tests" $ do
+              specify "patrPrevFunds" $ patrPrevFunds `shouldBe` Left NoSuchPatron
+              specify "withdrawal" $ withdrawal `shouldBe` Left NoSuchPatron
+              specify "patrPostFunds" $ patrPostFunds `shouldBe` Left NoSuchPatron
+          else context "Patron exists" $
+            if amount < view _Right patrPrevFunds
+              then context "Sufficient funds" $ do
+                let Right supposedBalance = do
+                      Funds prev' <- patrPrevFunds
+                      return $ Funds $ prev' - unFunds amount
+                specify "Result should be (GoodWithdrawal amount (patrPrevFunds - amount))" $ do
+                  withdrawal `shouldBe` Right (GoodWithdrawal amount supposedBalance)
+                specify "Balance should be (patrPrevFunds - amount)" $ do
+                  patrPostFunds `shouldBe` Right supposedBalance
+              else context "Insufficient funds" $ do
+                specify "Result should be (FundsEmpty patrPrevFunds)" $
+                  withdrawal `shouldBe` over _Right FundsEmpty patrPrevFunds
+                specify "Account balance should be zero" $
+                  patrPostFunds `shouldBe` Right zero
 
     PatrMkPledge patr prj -> do
       patronExists <- fmap isRight $ coRight $ selectPatron patr
