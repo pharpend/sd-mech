@@ -24,7 +24,7 @@ generateIteration :: Gen [Event]
 generateIteration =
     listOf $ arbitrary `suchThat` (/= RunIteration)
 
--- |Run an event
+-- |Translate an 'Event' into an action in the 'EMechM' monad.
 runEvent :: Event -> EMechM ()
 runEvent = \case
     RunIteration -> do
@@ -68,4 +68,3 @@ runEvent = \case
 
     PrjSuspendPledge prj patr -> do
         return ()
-
