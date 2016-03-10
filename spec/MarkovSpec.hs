@@ -24,47 +24,47 @@ generateIteration :: Gen [Event]
 generateIteration =
     listOf $ arbitrary `suchThat` (/= RunIteration)
 
--- |Translate an 'Event' into an action in the 'EMechM' monad.
-runEvent :: Event -> EMechM ()
+-- |Translate an 'Event' into a specification in the 'EMechM' monad.
+runEvent :: Event -> EMechM Spec
 runEvent = \case
     RunIteration -> do
-        return ()
+        return $ pendingWith "pharpend's laziness"
 
     PatrSpawn patr -> do
-        return ()
+        return $ pendingWith "pharpend's laziness"
 
     PatrDie patr -> do
-        return ()
+        return $ pendingWith "pharpend's laziness"
 
     PatrDeposit patr funds' -> do
-        return ()
+        return $ pendingWith "pharpend's laziness"
 
     PatrWithdraw patr funds' -> do
-        return ()
+        return $ pendingWith "pharpend's laziness"
 
     PatrMkPledge patr prj -> do
-        return ()
+        return $ pendingWith "pharpend's laziness"
 
     PatrRescindPledge patr prj -> do
-        return ()
+        return $ pendingWith "pharpend's laziness"
 
     PatrSuspendPledge patr prj -> do
-        return ()
+        return $ pendingWith "pharpend's laziness"
 
     PrjSpawn prj -> do
-        return ()
+        return $ pendingWith "pharpend's laziness"
 
     PrjDie prj -> do
-        return ()
+        return $ pendingWith "pharpend's laziness"
 
     PrjDeposit prj funds' -> do
-        return ()
+        return $ pendingWith "pharpend's laziness"
 
     PrjWithdraw prj funds' -> do
-        return ()
+        return $ pendingWith "pharpend's laziness"
 
     PrjRescindPledge prj patr -> do
-        return ()
+        return $ pendingWith "pharpend's laziness"
 
     PrjSuspendPledge prj patr -> do
-        return ()
+        return $ pendingWith "pharpend's laziness"
