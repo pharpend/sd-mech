@@ -68,7 +68,19 @@ patronFunds patr = do
 patronDeposit :: IsMechPatron a => a -> Funds -> EMechM ()
 patronDeposit patr funds' = do
     Entity patrid patron <- selectPatron patr
-    right $ P.replace patrid (over funds (<+> funds') patron)
+    right $ P.replace patrid (L.over funds (<+> funds') patron)
+    
+-- |Withdraw funds from patron's account. Returns the 'Withdrawal'.
+-- 
+-- Will throw error if patron doesn't exist
+patronWithdraw :: IsMechPatron a => a -> Funds -> EMechM Withdrawal
+patronWithdraw patr amount = do
+    Entity patrid patron <- selectPatron patr
+    let withdrawal = withdraw (L.view funds patron) amount
+        newFunds = balanceAfter withdrawal
+    right $ P.replace patrid $ L.set funds newFunds patron 
+    return withdrawal
+    
     
 
 --------------------------------------------------------------------------------
