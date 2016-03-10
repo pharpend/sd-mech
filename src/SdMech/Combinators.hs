@@ -146,6 +146,18 @@ projectDeposit prj funds' = do
     Entity prjid project <- selectProject prj
     right $ P.replace prjid (L.over funds (<+> funds') project)
 
+-- |Withdraw funds from project's account. Returns the 'Withdrawal'.
+-- 
+-- Will throw error if project doesn't exist
+projectWithdraw :: IsMechProject a => a -> Funds -> EMechM Withdrawal
+projectWithdraw prj amount = do
+    Entity prjid project <- selectProject prj
+    let withdrawal = withdraw (L.view funds project) amount
+        newFunds = balanceAfter withdrawal
+    right $ P.replace prjid $ L.set funds newFunds project 
+    return withdrawal
+    
+
 --------------------------------------------------------------------------------
 -- * Pledges
 

@@ -257,10 +257,33 @@ runEvent e = case e of
             it "should throw NoSuchProject when checking post-deposit funds" $ 
               prjPostFunds `shouldBe` Left NoSuchProject
 
-    PrjWithdraw prj funds' -> do
-        return $ context (show e) $
-            specify "there should be a test here" $
-                pendingWith "pharpend's laziness"
+    PrjWithdraw prj amount -> do
+      projectExists <- isRight' $ selectProject prj
+      prjPrevFunds <- coRight $ projectFunds prj
+      withdrawal <- coRight $ projectWithdraw prj amount
+      prjPostFunds <- coRight $ projectFunds prj
+      return $ context (show e) $
+        if not projectExists
+          then context "No such project" $
+            context "nonexistence tests" $ do
+              specify "prjPrevFunds" $ prjPrevFunds `shouldBe` Left NoSuchProject
+              specify "withdrawal" $ withdrawal `shouldBe` Left NoSuchProject
+              specify "prjPostFunds" $ prjPostFunds `shouldBe` Left NoSuchProject
+          else context "Project exists" $
+            if amount < view _Right prjPrevFunds
+              then context "Sufficient funds" $ do
+                let Right supposedBalance = do
+                      Funds prev' <- prjPrevFunds
+                      return $ Funds $ prev' - unFunds amount
+                specify "Result should be (GoodWithdrawal amount (prjPrevFunds - amount))" $ do
+                  withdrawal `shouldBe` Right (GoodWithdrawal amount supposedBalance)
+                specify "Balance should be (prjPrevFunds - amount)" $ do
+                  prjPostFunds `shouldBe` Right supposedBalance
+              else context "Insufficient funds" $ do
+                specify "Result should be (FundsEmpty prjPrevFunds)" $
+                  withdrawal `shouldBe` over _Right FundsEmpty prjPrevFunds
+                specify "Account balance should be zero" $
+                  prjPostFunds `shouldBe` Right zero
 
     PrjRescindPledge prj patr -> do
         return $ context (show e) $
