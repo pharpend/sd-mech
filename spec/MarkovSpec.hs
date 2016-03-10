@@ -22,7 +22,7 @@ import Test.QuickCheck
 
 spec :: Spec
 spec = context "Randomly-generated simulation" $ do
-  context "1 year of randomness" $ do
+  context "100 years of chaos" $ do
     iterations <- runIO $ generate (generateIterations 1200)
     runMechMSpec $
         runSpecs <$> mapM runIteration iterations
