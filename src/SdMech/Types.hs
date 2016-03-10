@@ -21,11 +21,13 @@ coRight :: EMechM x -> MechM (Either MechError x)
 coRight = runExceptT
 
 data MechError = ExistentPatron
-               | ExistentProject
                | NoSuchPatron
+               | ExistentProject
                | NoSuchProject
                | InsufficientFunds
                | ExistentPledge
+               | NoSuchPledge
+               | IntToFundsConversionError
     deriving (Eq, Show)
 
 share [mkPersist sqlSettings, mkMigrate "migrateMech"]
@@ -45,7 +47,7 @@ share [mkPersist sqlSettings, mkMigrate "migrateMech"]
       MechPledge
           patron MechPatronId
           project MechProjectId
-          UniqueMPledge patron project
+          UniqueMechPledge patron project
           deriving Show
       |]
 
