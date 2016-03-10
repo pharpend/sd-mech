@@ -6,7 +6,7 @@ import SdMech.Util ((<+>))
 import SdMech.Types
 
 import Control.Error
-import Control.Lens (view, over)
+import qualified Control.Lens as L
 import Control.Monad.Except
 import qualified Database.Persist as P
 import Database.Esqueleto
@@ -60,7 +60,7 @@ patronHasSufficientFundsFor patr prj = do
 patronFunds :: IsMechPatron a => a -> EMechM Funds
 patronFunds patr = do
     Entity _ patr' <- selectPatron patr
-    return $ view funds patr'
+    return $ L.view funds patr'
 
 -- |Deposit funds into patron's account
 -- 
@@ -124,7 +124,7 @@ fundsNeededForProject prj = do
 projectFunds :: IsMechProject a => a -> EMechM Funds
 projectFunds prj = do
     Entity _ prj' <- selectProject prj
-    return $ view funds prj'
+    return $ L.view funds prj'
 
 -- |Deposit funds into project's account
 -- 
@@ -132,7 +132,7 @@ projectFunds prj = do
 projectDeposit :: IsMechProject a => a -> Funds -> EMechM ()
 projectDeposit prj funds' = do
     Entity prjid project <- selectProject prj
-    right $ P.replace prjid (over funds (<+> funds') project)
+    right $ P.replace prjid (L.over funds (<+> funds') project)
 
 --------------------------------------------------------------------------------
 -- * Pledges
