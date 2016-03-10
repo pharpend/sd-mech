@@ -43,8 +43,8 @@ library
     TypeFamilies
   exposed-modules:
     SdMech
+    SdMech.Combinators
     SdMech.Funds
-    SdMech.Mutations
     SdMech.Types
     SdMech.Util
   build-depends:
