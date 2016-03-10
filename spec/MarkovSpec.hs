@@ -204,9 +204,28 @@ runEvent e = case e of
             projectPledges `shouldBe` Left NoSuchProject
 
     PrjDeposit prj funds' -> do
-        return $ context (show e) $
-            specify "there should be a test here" $
-                pendingWith "pharpend's laziness"
+      projectExists <- isRight' $ selectProject prj
+      prjPrevFunds <- coRight $ projectFunds prj
+      possibleError <- coRight $ projectDeposit prj funds'
+      prjPostFunds <- coRight $ projectFunds prj
+      return $ context (show e) $ do
+        if projectExists
+          then context "Project exists" $ do
+            he "should have previous funds" $
+              prjPrevFunds `shouldSatisfy` isRight
+            it "should deposit successfully" $
+              possibleError `shouldBe` Right ()
+            specify "the new balance should exist" $
+              prjPostFunds `shouldSatisfy` isRight
+            specify "the new balance should be previousFunds + newFunds" $
+              prjPostFunds `shouldBe` over _Right (<+> funds') prjPrevFunds
+          else context "Project does not exist" $ do
+            it "should throw NoSuchProject when looking up project funds" $ 
+              prjPrevFunds `shouldBe` Left NoSuchProject
+            it "should throw NoSuchProject when depositing" $ 
+              possibleError `shouldBe` Left NoSuchProject
+            it "should throw NoSuchProject when checking post-deposit funds" $ 
+              prjPostFunds `shouldBe` Left NoSuchProject
 
     PrjWithdraw prj funds' -> do
         return $ context (show e) $

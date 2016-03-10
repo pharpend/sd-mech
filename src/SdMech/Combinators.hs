@@ -120,6 +120,20 @@ fundsNeededForProject prj = do
             Just x -> return x
     return $ Funds 3 <.> monthlyIncome
 
+-- |How much money project has
+projectFunds :: IsMechProject a => a -> EMechM Funds
+projectFunds prj = do
+    Entity _ prj' <- selectProject prj
+    return $ view funds prj'
+
+-- |Deposit funds into project's account
+-- 
+-- Will throw error if project doesn't exist
+projectDeposit :: IsMechProject a => a -> Funds -> EMechM ()
+projectDeposit prj funds' = do
+    Entity prjid project <- selectProject prj
+    right $ P.replace prjid (over funds (<+> funds') project)
+
 --------------------------------------------------------------------------------
 -- * Pledges
 
