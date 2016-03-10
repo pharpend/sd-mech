@@ -67,13 +67,15 @@ test-suite spec
   default-language:    Haskell2010
   ghc-options:         -Wall -threaded -fno-warn-orphans
   default-extensions:
+    AllowAmbiguousTypes
     FlexibleInstances
     FunctionalDependencies
     GeneralizedNewtypeDeriving
-    MultiWayIf
     LambdaCase
     MultiParamTypeClasses
+    MultiWayIf
     OverloadedStrings
+    RankNTypes
     TemplateHaskell
     Trustworthy
   other-modules:

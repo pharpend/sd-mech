@@ -106,10 +106,13 @@ runEvent e = case e of
               patrPrevFunds `shouldSatisfy` isRight
             it "should deposit successfully" $
               possibleError `shouldBe` Right ()
-            specify "the new balance should exist" $
-              patrPostFunds `shouldSatisfy` isRight
-            specify "the new balance should be previousFunds + newFunds" $
-              patrPostFunds `shouldBe` over _Right (<+> funds') patrPrevFunds
+            describe "the new balance" $ do
+              it "should exist" $
+                patrPostFunds `shouldSatisfy` isRight
+              it "should be previousFunds + newFunds" $
+                patrPostFunds `shouldBe` over _Right (<+> funds') patrPrevFunds
+              it "should be greater than or equal to the previous balance" $ do
+                view _Right patrPostFunds `shouldSatisfy` (>= view _Right patrPrevFunds)
           else context "Patron does not exist" $ do
             it "should throw NoSuchPatron when looking up patron funds" $ 
               patrPrevFunds `shouldBe` Left NoSuchPatron
@@ -280,8 +283,8 @@ withLocalCluster action = do
             ['a' .. 'z'] <+> ['0'..'9']
         return $ "mechtest_" <+> suffix
 
-    appendDBName init nom =
-        init <+> "&dbname=" <+> nom
+    appendDBName init' nom =
+        init' <+> "&dbname=" <+> nom
 
     createDB connString dbnom =
         pgExecute (appendDBName connString "postgres") $
@@ -311,12 +314,15 @@ localClusterLocation =
 pgExecute :: ConnectionString
           -> Query
           -> MechM ()
-pgExecute connstr query = liftIO $ do
+pgExecute connstr query' = liftIO $ do
   conn <- connectPostgreSQL connstr
-  _ <- execute_ conn query
+  _ <- execute_ conn query'
   close conn
 
--- |We like to be non-inclusive
+-- |We like to be non-inclusive. This is a clone of 'it'
+he :: Example a => String -> a -> SpecWith (Arg a)
 he = it
 
+-- |Checks if MechM result is successful
+isRight' :: forall b. EMechM b -> MechM Bool
 isRight' = fmap isRight . coRight
