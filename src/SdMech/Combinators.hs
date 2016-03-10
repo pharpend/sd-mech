@@ -27,10 +27,14 @@ newPatron funds' a =
     failWithM ExistentPatron $
         P.insertUnique (MechPatron funds' (toMechPatron a))
 
--- |Delete a patron
-deletePatron :: IsMechPatron a => a -> MechM ()
-deletePatron a =
-    P.deleteBy $ UniqueMechPatron (toMechPatron a)
+-- |Delete a patron. (Also deletes pledges associated with this patron)
+deletePatron :: IsMechPatron a => a -> EMechM ()
+deletePatron a = do
+    -- Delete his pledges first
+    pledges' <- getPatronPledges a
+    right $ do
+      forM_ pledges' $ \(Entity k _) -> P.delete k
+      P.deleteBy $ UniqueMechPatron (toMechPatron a)
 
 -- |Get the pledges associated with a patron.  Will throw 'NoSuchPatron' if
 -- the patron doesn't exist.
@@ -69,10 +73,14 @@ newProject funds' a =
         P.insertUnique (MechProject funds' (toMechProject a))
 
 
--- |Delete a project
-deleteProject :: IsMechProject a => a -> MechM ()
-deleteProject a =
-    P.deleteBy $ UniqueMechProject (toMechProject a)
+-- |Delete a project. Also deletes pledges associated with project.
+deleteProject :: IsMechProject a => a -> EMechM ()
+deleteProject prj = do
+    -- Delete the pledges first
+    pledges' <- getProjectPledges prj
+    right $ do
+      forM_ pledges' $ \(Entity k _) -> P.delete k
+      P.deleteBy $ UniqueMechProject (toMechProject prj)
 
 -- |Get the pledges associated with a project.  Will throw 'NoSuchProject' if
 -- the project doesn't exist.
