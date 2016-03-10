@@ -235,7 +235,7 @@ withLocalCluster action = do
       "postgresql:///postgres?host=" <+> foo
 
     createTempName = do
-        suffix <- generate . vectorOf 64 . elements $
+        suffix <- generate . vectorOf 16 . elements $
             ['a' .. 'z'] <+> ['0'..'9']
         return $ "mechtest_" <+> suffix
 
