@@ -5,6 +5,7 @@ import FundsSpec ()
 import MarkovTypes
 import SdMech
 
+import Control.Error (failWithM)
 import Control.Lens hiding (elements, (<.>))
 import Control.Monad.IO.Class
 import Control.Monad.Logger
@@ -151,11 +152,15 @@ runEvent e = case e of
                   patrPostFunds `shouldBe` Right zero
 
     PatrMkPledge patr prj -> do
-      patronExists <- fmap isRight $ coRight $ selectPatron patr
-      projectExists <- fmap isRight $ coRight $ selectProject prj
+      patronE <- coRight $ selectPatron patr
+      projectE <- coRight $ selectProject prj
+      let patronExists = isRight patronE
+          projectExists = isRight projectE
       pledgeExists <- fmap isRight $ coRight $ selectPledge patr prj
       sufficientFundsB <- coRight $ patronHasSufficientFundsFor patr prj
-      pledge' <- coRight $ insertPledge patr prj
+      pledge' <- coRight $ do
+        pid <- insertPledge patr prj
+        failWithM NoSuchPledge $ P.get pid
       return $ context (show e) $
         if | not patronExists ->
               context "Patron does not exist" $
@@ -175,8 +180,10 @@ runEvent e = case e of
                   pledge' `shouldBe` Left ExistentPledge
            | otherwise ->
               context "Everything appears okay" $
-                specify "pledge should exist" $
-                  pledge' `shouldSatisfy` isRight
+                specify "pledge should be (Right (Pledge patr prj StActive))" $ do
+                  let Right (Entity patrKey _) = patronE
+                      Right (Entity prjKey _) = projectE
+                  pledge' `shouldBe` Right (MechPledge patrKey prjKey StActive)
 
     PatrActivatePledge patr prj -> do
       return $ context (show e) $

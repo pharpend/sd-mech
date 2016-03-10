@@ -87,6 +87,7 @@ test-suite spec
       base ==4.8.*
     , bytestring
     , directory
+    , errors
     , hspec
     , lens
     , monad-logger
