@@ -89,9 +89,29 @@ runEvent e = case e of
                 pendingWith "pharpend's laziness"
 
     PatrMkPledge patr prj -> do
-        return $ context (show e) $
-            specify "there should be a test here" $
-                pendingWith "pharpend's laziness"
+      patronExists <- fmap isRight $ coRight $ selectPatron patr
+      projectExists <- fmap isRight $ coRight $ selectProject prj
+      pledgeExists <- fmap isRight $ coRight $ selectPledge patr prj
+      patronFunds <- coRight $ do
+        Entity _ p <- selectPatron patr
+        return (mechPatronFunds p)
+      pledge' <- coRight $ insertPledge patr prj
+      return $ context (show e) $
+        if | not patronExists ->
+              context "Patron does not exist" $
+                it "should fail with NoSuchPatron" $
+                  pledge' `shouldBe` Left NoSuchPatron
+           | not projectExists ->
+              context "Project does not exist" $
+                it "should fail with NoSuchProject" $
+                  pledge' `shouldBe` Left NoSuchProject
+           | pledgeExists ->
+              context "Pledge already exists" $
+                it "should fail with ExistentPledge" $
+                  pledge' `shouldBe` Left ExistentPledge
+           | otherwise ->
+              it "should all be fine and dandy" $
+                pledge' `shouldSatisfy` isRight
 
     PatrRescindPledge patr prj -> do
         return $ context (show e) $

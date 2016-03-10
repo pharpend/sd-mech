@@ -70,6 +70,7 @@ test-suite spec
     FlexibleInstances
     FunctionalDependencies
     GeneralizedNewtypeDeriving
+    MultiWayIf
     LambdaCase
     MultiParamTypeClasses
     OverloadedStrings
