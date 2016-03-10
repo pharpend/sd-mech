@@ -5,13 +5,14 @@ import FundsSpec ()
 import MarkovTypes
 import SdMech
 
-import Control.Lens hiding (elements)
+import Control.Lens hiding (elements, (<.>))
 import Control.Monad.IO.Class
 import Control.Monad.Logger
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
 import Data.Either
 import Data.Maybe
+import qualified Data.Vector as V
 import qualified Database.Persist as P
 import Database.Persist.Postgresql
 import Database.PostgreSQL.Simple
@@ -123,18 +124,20 @@ runEvent e = case e of
               
                
 
-    PatrWithdraw patr funds' -> do
-        return $ context (show e) $
-            specify "there should be a test here" $
-                pendingWith "pharpend's laziness"
+    PatrWithdraw patr amount -> do
+      patronExists <- isRight' $ selectPatron patr
+      patrPrevFunds <- coRight $ patronFunds patr
+      withdrawal <- coRight $ patronWithdraw patr amount
+      patrPostFunds <- coRight $ patronFunds patr
+      return $ context (show e) $
+        specify "there should be a test here" $
+          pendingWith "pharpend's laziness"
 
     PatrMkPledge patr prj -> do
       patronExists <- fmap isRight $ coRight $ selectPatron patr
       projectExists <- fmap isRight $ coRight $ selectProject prj
       pledgeExists <- fmap isRight $ coRight $ selectPledge patr prj
-      patronFunds <- coRight $ do
-        Entity _ p <- selectPatron patr
-        return (mechPatronFunds p)
+      sufficientFundsB <- coRight $ patronHasSufficientFundsFor patr prj
       pledge' <- coRight $ insertPledge patr prj
       return $ context (show e) $
         if | not patronExists ->
@@ -145,13 +148,18 @@ runEvent e = case e of
               context "Project does not exist" $
                 it "should fail with NoSuchProject" $
                   pledge' `shouldBe` Left NoSuchProject
+           | sufficientFundsB == Right False ->
+              context "Patron does not have sufficient funds" $
+                specify "Pledge should fail with InsufficientFunds" $
+                  pledge' `shouldBe` Left InsufficientFunds
            | pledgeExists ->
               context "Pledge already exists" $
                 it "should fail with ExistentPledge" $
                   pledge' `shouldBe` Left ExistentPledge
            | otherwise ->
-              it "should all be fine and dandy" $
-                pledge' `shouldSatisfy` isRight
+              context "Everything appears okay" $
+                specify "pledge should exist" $
+                  pledge' `shouldSatisfy` isRight
 
     PatrRescindPledge patr prj -> do
         return $ context (show e) $
