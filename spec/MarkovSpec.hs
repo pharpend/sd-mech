@@ -94,9 +94,31 @@ runEvent e = case e of
             patronPledges `shouldBe` Left NoSuchPatron
 
 
-    PatrDeposit patr funds' -> return $ context (show e) $
-            specify "there should be a test here" $
-                pendingWith "pharpend's laziness"
+    PatrDeposit patr funds' -> do
+      patronExists <- isRight' $ selectPatron patr
+      patrPrevFunds <- coRight $ patronFunds patr
+      possibleError <- coRight $ patronDeposit patr funds'
+      patrPostFunds <- coRight $ patronFunds patr
+      return $ context (show e) $ do
+        if patronExists
+          then context "Patron exists" $ do
+            he "should have previous funds" $
+              patrPrevFunds `shouldSatisfy` isRight
+            it "should deposit successfully" $
+              possibleError `shouldBe` Right ()
+            specify "the new balance should exist" $
+              patrPostFunds `shouldSatisfy` isRight
+            specify "the new balance should be previousFunds + newFunds" $
+              patrPostFunds `shouldBe` over _Right (<+> funds') patrPrevFunds
+          else context "Patron does not exist" $ do
+            it "should throw NoSuchPatron when looking up patron funds" $ 
+              patrPrevFunds `shouldBe` Left NoSuchPatron
+            it "should throw NoSuchPatron when depositing" $ 
+              possibleError `shouldBe` Left NoSuchPatron
+            it "should throw NoSuchPatron when checking post-deposit funds" $ 
+              patrPostFunds `shouldBe` Left NoSuchPatron
+              
+               
 
     PatrWithdraw patr funds' -> do
         return $ context (show e) $
@@ -277,3 +299,5 @@ pgExecute connstr query = liftIO $ do
 
 -- |We like to be non-inclusive
 he = it
+
+isRight' = fmap isRight . coRight

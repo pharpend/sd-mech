@@ -2,10 +2,11 @@
 module SdMech.Combinators where
 
 import SdMech.Funds
+import SdMech.Util ((<+>))
 import SdMech.Types
 
 import Control.Error
-import Control.Lens (view)
+import Control.Lens (view, over)
 import Control.Monad.Except
 import qualified Database.Persist as P
 import Database.Esqueleto
@@ -54,7 +55,20 @@ patronHasSufficientFundsFor patr prj = do
     Entity _ patron <- selectPatron patr
     fn <- fundsNeededForProject prj
     return $ (mechPatronFunds patron) >= fn
-    
+
+-- |How much money patron has
+patronFunds :: IsMechPatron a => a -> EMechM Funds
+patronFunds patr = do
+    Entity _ patr' <- selectPatron patr
+    return $ view funds patr'
+
+-- |Deposit funds into patron's account
+-- 
+-- Will throw error if patron doesn't exist
+patronDeposit :: IsMechPatron a => a -> Funds -> EMechM ()
+patronDeposit patr funds' = do
+    Entity patrid patron <- selectPatron patr
+    right $ P.replace patrid (over funds (<+> funds') patron)
     
 
 --------------------------------------------------------------------------------
