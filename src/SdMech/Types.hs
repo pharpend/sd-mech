@@ -2,6 +2,7 @@
 module SdMech.Types where
 
 import Control.Error
+import Data.Ord (comparing)
 import Database.Persist.Sql
 import SdMech.Funds
 import SdMech.Util
@@ -48,9 +49,21 @@ share [mkPersist sqlSettings, mkMigrate "migrateMech"]
           patron MechPatronId
           project MechProjectId
           UniqueMechPledge patron project
-          deriving Show
+          deriving Eq Show
       |]
 
+
+instance Eq MechPatron where
+    m1 == m2 = mechPatronExternalKey m1 == mechPatronExternalKey m2
+
+instance Ord MechPatron where
+    compare = comparing mechPatronExternalKey
+
+instance Eq MechProject where
+    m1 == m2 = mechProjectExternalKey m1 == mechProjectExternalKey m2
+
+instance Ord MechProject where
+    compare = comparing mechProjectExternalKey
 
 class IsMechPatron x where
   toMechPatron :: x -> Int
