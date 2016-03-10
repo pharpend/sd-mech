@@ -84,7 +84,9 @@ test-suite spec
     , bytestring
     , directory
     , hspec
+    , lens
     , monad-logger
+    , persistent
     , persistent-postgresql
     , postgresql-simple
     , QuickCheck

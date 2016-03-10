@@ -5,10 +5,14 @@ import FundsSpec ()
 import MarkovTypes
 import SdMech
 
+import Control.Lens hiding (elements)
 import Control.Monad.IO.Class
 import Control.Monad.Logger
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
+import Data.Either
+import Data.Maybe
+import qualified Database.Persist as P
 import Database.Persist.Postgresql
 import Database.PostgreSQL.Simple
 import System.Directory (getCurrentDirectory)
@@ -19,7 +23,7 @@ import Test.QuickCheck
 spec :: Spec
 spec = context "Randomly-generated simulation" $ do
   context "1 year of randomness" $ do
-    iterations <- runIO $ generate (generateIterations 12)
+    iterations <- runIO $ generate (generateIterations 1200)
     runMechMSpec $
         runSpecs <$> mapM runIteration iterations
 
@@ -46,15 +50,34 @@ runEvent e = case e of
             specify "there should be a test here" $
                 pendingWith "pharpend's laziness"
 
-    PatrSpawn patr -> do
-        return $ context (show e) $
-            specify "there should be a test here" $
-                pendingWith "pharpend's laziness"
+    PatrSpawn patr funds' -> do
+      -- Check to see if the patron exists
+      patronExists <- fmap isRight $ coRight $ selectPatron patr
+      -- Insert him into the table
+      result <- coRight $ newPatron funds' patr
+      -- See how much money he has
+      resultFunds <- coRight $ do
+          Entity _ val <- selectPatron patr
+          return (view funds val)
+      return $ context (show e) $
+        if patronExists
+          then context "Patron already exists" $
+            it "should return Left ExistentPatron" $
+              result `shouldBe` Left ExistentPatron
+          else context "Patron does not already exist" $ do
+            it "should return Right" $
+              result `shouldSatisfy` isRight
+            he "should have some money in the bank" $
+              resultFunds `shouldBe` Right funds'
 
     PatrDie patr -> do
-        return $ context (show e) $
-            specify "there should be a test here" $
-                pendingWith "pharpend's laziness"
+      -- Kill him
+      deletePatron patr
+      -- Check to see if the patron exists after he's dead
+      patronExists <- fmap isRight $ coRight $ selectPatron patr
+      return $ context (show e) $
+        he "should no longer exist" $
+          patronExists `shouldBe` False
 
     PatrDeposit patr funds' -> return $ context (show e) $
             specify "there should be a test here" $
@@ -80,7 +103,7 @@ runEvent e = case e of
             specify "there should be a test here" $
                 pendingWith "pharpend's laziness"
 
-    PrjSpawn prj -> do
+    PrjSpawn prj funds' -> do
         return $ context (show e) $
             specify "there should be a test here" $
                 pendingWith "pharpend's laziness"
@@ -133,10 +156,12 @@ withLocalCluster action = do
     -- NoLoggerT thing, then rip it back down into the real world.
     let createAndDestroy = do
             createDB connStr testDBName
+            runMigration migrateMech
             actionResult <- action
+            transactionUndo
             dropDB connStr testDBName
             return actionResult
-    runNoLoggingT $ withPostgresqlPool connStr 1 (liftIO . runMechM createAndDestroy)
+    runNoLoggingT $ withPostgresqlPool connStr 10 (liftIO . runMechM createAndDestroy)
   where    
     formatPgConnStr foo =
       "postgresql:///postgres?host=" <+> foo
@@ -181,3 +206,6 @@ pgExecute connstr query = liftIO $ do
   conn <- connectPostgreSQL connstr
   _ <- execute_ conn query
   close conn
+
+-- |We like to be non-inclusive
+he = it
