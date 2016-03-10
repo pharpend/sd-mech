@@ -71,13 +71,28 @@ runEvent e = case e of
               resultFunds `shouldBe` Right funds'
 
     PatrDie patr -> do
+      -- Check to see if the patron exists before we murder him
+      patronExistsBefore <- fmap isRight $ coRight $ selectPatron patr
       -- Kill him
-      deletePatron patr
+      potentialError <- coRight $ deletePatron patr
+      -- Let's see his pledges (should throw error)
+      patronPledges <- coRight $ getPatronPledges patr
       -- Check to see if the patron exists after he's dead
-      patronExists <- fmap isRight $ coRight $ selectPatron patr
-      return $ context (show e) $
-        he "should no longer exist" $
-          patronExists `shouldBe` False
+      patronExistsAfter <- coRight $ selectPatron patr
+      return $ context (show e) $ do
+        if patronExistsBefore
+          then context "Patron did exist before deletion" $ do
+            it "should delete successfully" $ do
+              potentialError `shouldSatisfy` isRight
+          else context "Patron did *not* exist before deletion" $ do
+            it "should throw NoSuchPatron when deleting" $
+              potentialError `shouldBe` Left NoSuchPatron
+        context "Regardless of his pre-existence" $ do
+          he "should no longer exist" $
+            patronExistsAfter `shouldBe` Left NoSuchPatron
+          it "should throw NoSuchPatron when examining postmortem pledges" $
+            patronPledges `shouldBe` Left NoSuchPatron
+
 
     PatrDeposit patr funds' -> return $ context (show e) $
             specify "there should be a test here" $
@@ -144,13 +159,27 @@ runEvent e = case e of
               resultFunds `shouldBe` Right funds'
 
     PrjDie prj -> do
+      -- Check to see if the project exists before we murder him
+      projectExistsBefore <- fmap isRight $ coRight $ selectProject prj
       -- Kill him
-      deleteProject prj
+      potentialError <- coRight $ deleteProject prj
+      -- Let's see his pledges (should throw error)
+      projectPledges <- coRight $ getProjectPledges prj
       -- Check to see if the project exists after he's dead
-      projectExists <- fmap isRight $ coRight $ selectProject prj
-      return $ context (show e) $
-        he "should no longer exist" $
-          projectExists `shouldBe` False
+      projectExistsAfter <- coRight $ selectProject prj
+      return $ context (show e) $ do
+        if projectExistsBefore
+          then context "Project did exist before deletion" $ do
+            it "should delete successfully" $ do
+              potentialError `shouldSatisfy` isRight
+          else context "Project did *not* exist before deletion" $ do
+            it "should throw NoSuchProject when deleting" $
+              potentialError `shouldBe` Left NoSuchProject
+        context "Regardless of his pre-existence" $ do
+          he "should no longer exist" $
+            projectExistsAfter `shouldBe` Left NoSuchProject
+          it "should throw NoSuchProject when examining postmortem pledges" $
+            projectPledges `shouldBe` Left NoSuchProject
 
     PrjDeposit prj funds' -> do
         return $ context (show e) $
