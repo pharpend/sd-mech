@@ -25,14 +25,12 @@ data Event = RunIteration
            | PatrDeposit Patr Funds
            | PatrWithdraw Patr Funds
            | PatrMkPledge Patr Prj
-           | PatrRescindPledge Patr Prj
+           | PatrActivatePledge Patr Prj
            | PatrSuspendPledge Patr Prj
            | PrjSpawn Prj Funds
            | PrjDie Prj
            | PrjDeposit Prj Funds
            | PrjWithdraw Prj Funds
-           | PrjRescindPledge Prj Patr
-           | PrjSuspendPledge Prj Patr
   deriving (Show, Eq, Ord)
 
 -------------------------------------------------------------------------------
@@ -55,14 +53,12 @@ instance Arbitrary Event where
               , PatrDeposit <$> arbitrary <*> arbitrary
               , PatrWithdraw <$> arbitrary <*> arbitrary
               , PatrMkPledge <$> arbitrary <*> arbitrary
-              , PatrRescindPledge <$> arbitrary <*> arbitrary
+              , PatrActivatePledge <$> arbitrary <*> arbitrary
               , PatrSuspendPledge <$> arbitrary <*> arbitrary
               , PrjSpawn <$> arbitrary <*> arbitrary
               , PrjDie <$> arbitrary
               , PrjDeposit <$> arbitrary <*> arbitrary
               , PrjWithdraw <$> arbitrary <*> arbitrary
-              , PrjRescindPledge <$> arbitrary <*> arbitrary
-              , PrjSuspendPledge <$> arbitrary <*> arbitrary
               ]
 
 -- ** Lenses and such

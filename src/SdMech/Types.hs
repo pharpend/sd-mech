@@ -52,6 +52,7 @@ share [mkPersist sqlSettings, mkMigrate "migrateMech"]
       MechPledge
           patron MechPatronId
           project MechProjectId
+          status MechPledgeStatus
           UniqueMechPledge patron project
           deriving Eq Show
       |]

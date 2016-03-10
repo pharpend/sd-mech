@@ -178,15 +178,15 @@ runEvent e = case e of
                 specify "pledge should exist" $
                   pledge' `shouldSatisfy` isRight
 
-    PatrRescindPledge patr prj -> do
-        return $ context (show e) $
-            specify "there should be a test here" $
-                pendingWith "pharpend's laziness"
+    PatrActivatePledge patr prj -> do
+      return $ context (show e) $
+        specify "there should be a test here" $
+          pendingWith "pharpend's laziness"
 
     PatrSuspendPledge patr prj -> do
-        return $ context (show e) $
-            specify "there should be a test here" $
-                pendingWith "pharpend's laziness"
+      return $ context (show e) $
+        specify "there should be a test here" $
+          pendingWith "pharpend's laziness"
 
     PrjSpawn prj funds' -> do
       -- Check to see if the project exists
@@ -282,16 +282,6 @@ runEvent e = case e of
                   withdrawal `shouldBe` over _Right FundsEmpty prjPrevFunds
                 specify "Account balance should be zero" $
                   prjPostFunds `shouldBe` Right zero
-
-    PrjRescindPledge prj patr -> do
-        return $ context (show e) $
-            specify "there should be a test here" $
-                pendingWith "pharpend's laziness"
-
-    PrjSuspendPledge prj patr -> do
-        return $ context (show e) $
-            specify "there should be a test here" $
-                pendingWith "pharpend's laziness"
 
 -- |Generate a number of iterations. 'RunIteration' is not manually
 -- interspersed.
