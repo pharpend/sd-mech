@@ -31,7 +31,9 @@ data MechError = ExistentPatron
                | ExistentPledge
                | NoSuchPledge
                | IntToFundsConversionError
-    deriving (Eq, Show)
+    deriving (Eq, Show, Read)
+
+derivePersistField "MechError"
 
 share [mkPersist sqlSettings, mkMigrate "migrateMech"]
       [persistLowerCase|
