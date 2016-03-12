@@ -112,7 +112,19 @@ patronActivatePledge patr prj = do
       return StImpoverishedPatron
       
     
-    
+-- |Suspend a pledge. Throws errors if
+-- 
+-- - Patron does not exist ('NoSuchPatron')
+-- - Project does not exist ('NoSuchProject')
+-- - Pledge does not exist ('NoSuchPledge')
+-- 
+-- Note that this does not take into account what the current status is.
+patronSuspendPledge :: (IsMechPatron a, IsMechProject r)
+                    => a -> r -> EMechM ()
+patronSuspendPledge patr prj = do
+  Entity pledgeKey pledge' <- selectPledge patr prj
+  right $ P.replace pledgeKey $ L.set status StPatronSuspended pledge'
+
 
 --------------------------------------------------------------------------------
 -- * Projects

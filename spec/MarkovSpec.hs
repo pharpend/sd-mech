@@ -221,9 +221,30 @@ runEvent e = case e of
 
 
     PatrSuspendPledge patr prj -> do
-      return $ context (show e) $
-        specify "there should be a test here" $
-          pendingWith "pharpend's laziness"
+      eitherPatron <- coRight $ selectPatron patr
+      eitherProject <- coRight $ selectProject prj
+      eitherPledge <- coRight $ selectPledge patr prj
+      _ <- coRight $ patronSuspendPledge patr prj
+      newStatus <- coRight $ getPledgeStatus patr prj
+      return $ context (show e) $ do
+        context "The new status" $ do
+          if | isLeft eitherPatron ->
+                context "Patron does not exist" $ do
+                  it "should be Left NoSuchPatron" $
+                    newStatus `shouldBe` Left NoSuchPatron
+             | isLeft eitherProject ->
+                context "Project does not exist" $ do
+                  it "should be Left NoSuchProject" $
+                    newStatus `shouldBe` Left NoSuchProject
+             | isLeft eitherPledge ->
+                context "Pledge does not exist" $ do
+                  it "should be Left NoSuchPledge" $
+                    newStatus `shouldBe` Left NoSuchPledge
+             | otherwise ->
+                context "Everything appears to exist" $
+                  it "should be Right StPatronSuspended" $
+                    newStatus `shouldBe` Right StPatronSuspended
+
 
     PrjSpawn prj funds' -> do
       -- Check to see if the project exists
