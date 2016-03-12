@@ -391,6 +391,7 @@ runEvent e = case e of
                         it "should not be StActive" $ do
                           view status pl `shouldNotBe` StActive
                   let Right prevPledges = patridToPledgesPre ! patrid
+                      Right postPledges = patridToPledgesPost ! patrid
                       prevActivePledges = V.filter (\(Entity _ x) -> view status x == StActive) prevPledges
                   context "previously active pledges should now have status StImpoverishedPatron" $
                     forM_ prevActivePledges $ \(Entity plid _) -> do

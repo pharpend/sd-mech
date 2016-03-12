@@ -58,8 +58,8 @@ patronDues' patronK = do
     patronPledges <- getPatronPledges' patronK
     pledgeValues <- forM patronPledges $ \(Entity _ pl) -> do
         naptp <- numberOfActivePledgesToProject' (L.view project pl)
-        failWith IntToFundsConversionError $ intToFunds naptp
-    return $ foldl mappend zero pledgeValues
+        intToFunds' naptp
+    return $ mconcat $ V.toList pledgeValues
 
 -- |See if the patron has enough funds to pledge to project.
 -- 
@@ -353,7 +353,7 @@ runIteration = do
         StActive -> do
             let prjid = L.view project pledge'
                 patrid = L.view patron pledge'
-            withdrawalAmount <- fundsNeededForProject' prjid
+            withdrawalAmount <- intToFunds' =<< numberOfActivePledgesToProject' prjid
             withdrawal <- patronWithdraw' patrid withdrawalAmount
             let amountWithdrawn = case withdrawal of
                     GoodWithdrawal amt _ -> amt
@@ -363,3 +363,6 @@ runIteration = do
 
         -- If the pledge isn't active for whatever reason, move on
         _ -> return ()
+
+intToFunds' :: Int -> EMechM Funds
+intToFunds' = failWith IntToFundsConversionError . intToFunds
