@@ -80,6 +80,37 @@ patronWithdraw patr amount = do
         newFunds = balanceAfter withdrawal
     right $ P.replace patrid $ L.set funds newFunds patron 
     return withdrawal
+
+-- |Attempt to activate pledge. Throws errors if
+-- 
+-- - Patron does not exist ('NoSuchPatron')
+-- - Project does not exist ('NoSuchProject')
+-- - Pledge does not exist ('NoSuchPledge')
+-- 
+-- This does not throw any errors if the pledge is already active, or if the
+-- patron does not have funds. It instead returns the 'MechPledgeStatus'.
+-- 
+-- Note that
+-- 
+-- > (patron has funds) -> StActive
+-- > (patron does not have funds) -> StImpoverishedPatron
+-- 
+-- Meaning there is no situation in which this returns 'StPatronSuspended'.
+-- 
+-- This will mutate the pledge status in the database.
+patronActivatePledge :: (IsMechPatron a, IsMechProject r)
+                     => a -> r -> EMechM MechPledgeStatus
+patronActivatePledge patr prj = do
+  Entity pledgeKey pledge' <- selectPledge patr prj
+  patronHasFunds <- patronHasSufficientFundsFor patr prj
+  if patronHasFunds
+    then do
+      right $ P.replace pledgeKey $ L.set status StActive pledge'
+      return StActive
+    else do
+      right $ P.replace pledgeKey $ L.set status StImpoverishedPatron pledge'
+      return StImpoverishedPatron
+      
     
     
 
@@ -196,3 +227,11 @@ insertPledge a r = do
         else failWithM ExistentPledge $
             P.insertUnique (MechPledge patronK projectK StActive)
 
+-- |Get the status of a pledge. Will throw an error if
+-- 
+-- - Patron does not exist ('NoSuchPatron')
+-- - Project does not exist ('NoSuchProject')
+-- - Pledge does not exists ('NoSuchPledge')
+getPledgeStatus :: (IsMechPatron a, IsMechProject r)
+                => a -> r -> EMechM MechPledgeStatus
+getPledgeStatus a r = fmap (mechPledgeStatus . entityVal) $ selectPledge a r

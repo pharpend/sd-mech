@@ -186,9 +186,39 @@ runEvent e = case e of
                   pledge' `shouldBe` Right (MechPledge patrKey prjKey StActive)
 
     PatrActivatePledge patr prj -> do
-      return $ context (show e) $
-        specify "there should be a test here" $
-          pendingWith "pharpend's laziness"
+      eitherPatron <- coRight $ selectPatron patr
+      eitherProject <- coRight $ selectProject prj
+      eitherPledge <- coRight $ selectPledge patr prj
+      funded <- coRight $ patronHasSufficientFundsFor patr prj
+      newStatus <- coRight $ patronActivatePledge patr prj
+      newStatus' <- coRight $ getPledgeStatus patr prj
+      return $ context (show e) $ do
+        context "The new status" $ do
+          if | isLeft eitherPatron ->
+                context "Patron does not exist" $ do
+                  it "should be Left NoSuchPatron" $
+                    newStatus `shouldBe` Left NoSuchPatron
+             | isLeft eitherProject ->
+                context "Project does not exist" $ do
+                  it "should be Left NoSuchProject" $
+                    newStatus `shouldBe` Left NoSuchProject
+             | isLeft eitherPledge ->
+                context "Pledge does not exist" $ do
+                  it "should be Left NoSuchPledge" $
+                    newStatus `shouldBe` Left NoSuchPledge
+             | otherwise ->
+                context "Everything appears to exist" $
+                  if funded == Right True
+                    then context "Patron has sufficient funds" $
+                      it "should be Right StActive" $
+                        newStatus `shouldBe` Right StActive
+                    else context "Patron does not have sufficient funds" $
+                      it "should be Right StImpoverishedPatron" $
+                        newStatus `shouldBe` Right StImpoverishedPatron
+          context "Regardless of existence" $
+            it "should match a query of the pledge status" $
+              newStatus `shouldBe` newStatus'
+
 
     PatrSuspendPledge patr prj -> do
       return $ context (show e) $
