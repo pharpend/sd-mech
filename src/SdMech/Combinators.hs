@@ -52,9 +52,9 @@ getPatronPledges r = do
 patronHasSufficientFundsFor :: (IsMechPatron a, IsMechProject r)
                             => a -> r -> EMechM Bool
 patronHasSufficientFundsFor patr prj = do
-    Entity _ patron <- selectPatron patr
+    Entity _ patron' <- selectPatron patr
     fn <- fundsNeededForProject prj
-    return $ (mechPatronFunds patron) >= fn
+    return $ (mechPatronFunds patron') >= fn
 
 -- |How much money patron has
 patronFunds :: IsMechPatron a => a -> EMechM Funds
@@ -63,22 +63,22 @@ patronFunds patr = do
     return $ L.view funds patr'
 
 -- |Deposit funds into patron's account
--- 
+--
 -- Will throw error if patron doesn't exist
 patronDeposit :: IsMechPatron a => a -> Funds -> EMechM ()
 patronDeposit patr funds' = do
-    Entity patrid patron <- selectPatron patr
-    right $ P.replace patrid (L.over funds (<+> funds') patron)
-    
+    Entity patrid patron' <- selectPatron patr
+    right $ P.replace patrid (L.over funds (<+> funds') patron')
+
 -- |Withdraw funds from patron's account. Returns the 'Withdrawal'.
--- 
+--
 -- Will throw error if patron doesn't exist
 patronWithdraw :: IsMechPatron a => a -> Funds -> EMechM Withdrawal
 patronWithdraw patr amount = do
-    Entity patrid patron <- selectPatron patr
-    let withdrawal = withdraw (L.view funds patron) amount
+    Entity patrid patron' <- selectPatron patr
+    let withdrawal = withdraw (L.view funds patron') amount
         newFunds = balanceAfter withdrawal
-    right $ P.replace patrid $ L.set funds newFunds patron 
+    right $ P.replace patrid $ L.set funds newFunds patron'
     return withdrawal
 
 -- |Attempt to activate pledge. Throws errors if
@@ -170,24 +170,24 @@ projectFunds prj = do
     return $ L.view funds prj'
 
 -- |Deposit funds into project's account
--- 
+--
 -- Will throw error if project doesn't exist
 projectDeposit :: IsMechProject a => a -> Funds -> EMechM ()
 projectDeposit prj funds' = do
-    Entity prjid project <- selectProject prj
-    right $ P.replace prjid (L.over funds (<+> funds') project)
+    Entity prjid project' <- selectProject prj
+    right $ P.replace prjid (L.over funds (<+> funds') project')
 
 -- |Withdraw funds from project's account. Returns the 'Withdrawal'.
--- 
+--
 -- Will throw error if project doesn't exist
 projectWithdraw :: IsMechProject a => a -> Funds -> EMechM Withdrawal
 projectWithdraw prj amount = do
-    Entity prjid project <- selectProject prj
-    let withdrawal = withdraw (L.view funds project) amount
+    Entity prjid project' <- selectProject prj
+    let withdrawal = withdraw (L.view funds project') amount
         newFunds = balanceAfter withdrawal
-    right $ P.replace prjid $ L.set funds newFunds project 
+    right $ P.replace prjid $ L.set funds newFunds project'
     return withdrawal
-    
+
 
 --------------------------------------------------------------------------------
 -- * Pledges
