@@ -77,6 +77,7 @@ test-suite spec
     MultiWayIf
     OverloadedStrings
     RankNTypes
+    ScopedTypeVariables
     TemplateHaskell
     Trustworthy
   other-modules:
@@ -86,8 +87,10 @@ test-suite spec
   build-depends:
       base ==4.8.*
     , bytestring
+    , containers
     , directory
     , errors
+    , esqueleto
     , hspec
     , lens
     , monad-logger

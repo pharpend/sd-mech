@@ -2,16 +2,17 @@
 module SdMech.Combinators where
 
 import SdMech.Funds
-import SdMech.Util ((<+>))
+import SdMech.Util ((<+>), zero)
 import SdMech.Types
 
 import Control.Error
 import qualified Control.Lens as L
 import Control.Monad.Except
-import qualified Database.Persist as P
-import Database.Esqueleto
 import Data.Vector (Vector)
 import qualified Data.Vector as V
+import Database.Esqueleto hiding ((=.))
+import Database.Persist ((=.))
+import qualified Database.Persist as P
 
 --------------------------------------------------------------------------------
 -- * Patrons
@@ -41,20 +42,43 @@ deletePatron a = do
 -- the patron doesn't exist.
 getPatronPledges :: IsMechPatron r => r -> EMechM (Vector (Entity MechPledge))
 getPatronPledges r = do
-    Entity patronK _ <- failWithM NoSuchPatron $
-        P.getBy $ UniqueMechPatron (toMechPatron r)
+    Entity patronK _ <- selectPatron r
+    getPatronPledges' patronK
+
+getPatronPledges' :: Key MechPatron -> EMechM (Vector (Entity MechPledge))
+getPatronPledges' patronK = do
     pledges <- right $ select $ from $ \pledge -> do
         where_ (pledge^.MechPledgePatron ==. val patronK)
         return pledge
     return $ V.fromList pledges
 
+-- |How much the patron owes on the next iteration.
+patronDues' :: Key MechPatron -> EMechM Funds
+patronDues' patronK = do
+    patronPledges <- getPatronPledges' patronK
+    pledgeValues <- forM patronPledges $ \(Entity _ pl) -> do
+        naptp <- numberOfActivePledgesToProject' (L.view project pl)
+        failWith IntToFundsConversionError $ intToFunds naptp
+    return $ foldl mappend zero pledgeValues
+
 -- |See if the patron has enough funds to pledge to project.
+-- 
+-- Will throw error if 
+-- 
+-- - Patron does not exist ('NoSuchPatron')
+-- - Project does not exist ('NoSuchProject')
 patronHasSufficientFundsFor :: (IsMechPatron a, IsMechProject r)
                             => a -> r -> EMechM Bool
 patronHasSufficientFundsFor patr prj = do
-    Entity _ patron' <- selectPatron patr
-    fn <- fundsNeededForProject prj
-    return $ (mechPatronFunds patron') >= fn
+    Entity patrid _ <- selectPatron patr
+    Entity prjid _ <- selectProject prj
+    patronHasSufficientFundsFor' patrid prjid
+
+patronHasSufficientFundsFor' :: Key MechPatron -> Key MechProject -> EMechM Bool
+patronHasSufficientFundsFor' patrid prjid = do
+    fn <- fundsNeededForProject' prjid
+    patron' <- failWithM NoSuchPatron $ P.get patrid
+    return $ (L.view funds patron') >= fn
 
 -- |How much money patron has
 patronFunds :: IsMechPatron a => a -> EMechM Funds
@@ -72,10 +96,17 @@ patronDeposit patr funds' = do
 
 -- |Withdraw funds from patron's account. Returns the 'Withdrawal'.
 --
--- Will throw error if patron doesn't exist
+-- Will throw error if patron doesn't exist. If this drains the patron's
+-- account, then it will set the status of all of the patron's pledges to
+-- 'StImpoverishedPatron'.
 patronWithdraw :: IsMechPatron a => a -> Funds -> EMechM Withdrawal
 patronWithdraw patr amount = do
-    Entity patrid patron' <- selectPatron patr
+    Entity patrid _ <- selectPatron patr
+    patronWithdraw' patrid amount
+
+patronWithdraw' :: Key MechPatron -> Funds -> EMechM Withdrawal
+patronWithdraw' patrid  amount = do
+    patron' <- failWithM NoSuchPatron $ P.get patrid
     let withdrawal = withdraw (L.view funds patron') amount
         newFunds = balanceAfter withdrawal
     right $ P.replace patrid $ L.set funds newFunds patron'
@@ -155,10 +186,13 @@ deleteProject prj = do
 -- the project doesn't exist.
 getProjectPledges :: IsMechProject r => r -> EMechM (Vector (Entity MechPledge))
 getProjectPledges r = do
-    Entity projectK _ <- failWithM NoSuchProject $
-        P.getBy $ UniqueMechProject (toMechProject r)
+    Entity k _ <- selectProject r
+    getProjectPledges' k
+
+getProjectPledges' :: Key MechProject -> EMechM (Vector (Entity MechPledge))
+getProjectPledges' k = do
     pledges <- right $ select $ from $ \pledge -> do
-        where_ (pledge^.MechPledgeProject ==. val projectK)
+        where_ (pledge^.MechPledgeProject ==. val k)
         return pledge
     return $ V.fromList pledges
 
@@ -166,11 +200,31 @@ getProjectPledges r = do
 numberOfPledgesToProject :: IsMechProject r => r -> EMechM Int
 numberOfPledgesToProject = fmap V.length . getProjectPledges
 
--- |3 times the 'numberOfPledgesToProject'
+numberOfPledgesToProject' :: Key MechProject -> EMechM Int
+numberOfPledgesToProject' = fmap V.length . getProjectPledges'
+
+-- |Get the number of pledges of the project
+numberOfActivePledgesToProject :: IsMechProject p => p -> EMechM Int
+numberOfActivePledgesToProject prj = do
+    Entity prjid _ <- selectProject prj
+    numberOfActivePledgesToProject' prjid
+
+numberOfActivePledgesToProject' :: Key MechProject -> EMechM Int
+numberOfActivePledgesToProject' prjid = do
+    pledges <- getProjectPledges' prjid
+    let pledges' = V.filter (\(Entity _ pledge') -> L.view status pledge' == StActive) pledges
+    return $ V.length pledges'
+
+-- |3 times the 'numberOfActivePledgesToProject'
 fundsNeededForProject :: IsMechProject r => r -> EMechM Funds
 fundsNeededForProject prj = do
+    Entity k _ <- selectProject prj
+    fundsNeededForProject' k
+    
+fundsNeededForProject' :: Key MechProject -> EMechM Funds
+fundsNeededForProject' k = do
     monthlyIncome <-
-        fmap intToFunds (numberOfPledgesToProject prj) >>= \case
+        fmap intToFunds (numberOfActivePledgesToProject' k) >>= \case
             Nothing -> throwError IntToFundsConversionError
             Just x -> return x
     return $ Funds 3 <.> monthlyIncome
@@ -247,3 +301,65 @@ insertPledge a r = do
 getPledgeStatus :: (IsMechPatron a, IsMechProject r)
                 => a -> r -> EMechM MechPledgeStatus
 getPledgeStatus a r = fmap (mechPledgeStatus . entityVal) $ selectPledge a r
+
+
+-- |'Verify' the status. In essence:
+-- 
+-- - If the status is 'StPatronSuspended', leave it - If the status is
+-- 'StImpoverishedPatron', leave it - If the status is 'StActive', make sure the
+-- patron has funds, and if not, switch to 'StImpoverishedPatron'
+--
+-- Will throw error if
+-- 
+-- - Patron does not exist ('NoSuchPatron')
+-- - Project does not exist ('NoSuchProject')
+-- - Pledge does not exist ('NoSuchPledge')
+verifyPledgeStatus :: (IsMechPatron a, IsMechProject r)
+                   => a -> r -> EMechM MechPledgeStatus
+verifyPledgeStatus a r =
+    (verifyPledgeStatus' . entityKey) =<< selectPledge a r
+                  
+
+-- |Similar to 'verifyPledgeStatus', except it takes a 'Key' rather than the
+-- associated parties.
+verifyPledgeStatus' :: Key MechPledge -> EMechM MechPledgeStatus
+verifyPledgeStatus' pledgeId' = do
+    MechPledge patronId' projectId' status' <-
+        failWithM NoSuchPledge $ P.get pledgeId'
+    case status' of
+        StActive -> do
+            patrFunded <- patronHasSufficientFundsFor' patronId' projectId'
+            if not patrFunded
+                then do
+                    right $ P.update pledgeId' [MechPledgeStatus =. StImpoverishedPatron]
+                    return StImpoverishedPatron
+                else return StActive
+        x -> return x
+
+-- |Run the pledges, so to speak. Take all of the active pledges, and move the
+-- money from patrons to projects.
+-- 
+-- It shouldn't throw any errors, hence the MechM monad
+runIteration :: MechM ()
+runIteration = do
+    pledges <- select $ from $
+        \pledge' ->
+            do where_ ((pledge' ^. MechPledgeStatus) ==. val StActive)
+               return pledge'
+    mapM_ (coRight . runPledge) pledges
+  where    
+    runPledge :: Entity MechPledge -> EMechM ()
+    runPledge (Entity pldgid pledge') = verifyPledgeStatus' pldgid >>= \case
+        StActive -> do
+            let prjid = L.view project pledge'
+                patrid = L.view patron pledge'
+            withdrawalAmount <- fundsNeededForProject' prjid
+            withdrawal <- patronWithdraw' patrid withdrawalAmount
+            let amountWithdrawn = case withdrawal of
+                    GoodWithdrawal amt _ -> amt
+                    FundsEmpty amt -> amt
+            project' <- failWithM NoSuchProject $ P.get prjid
+            right $ P.replace prjid (L.over funds (<+> amountWithdrawn) project')
+
+        -- If the pledge isn't active for whatever reason, move on
+        _ -> return ()

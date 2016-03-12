@@ -9,8 +9,8 @@ import Control.Error
 import Data.Ord (comparing)
 import Database.Persist.Sql
 
-type EMechM = ExceptT MechError SqlPersistM
 type MechM = SqlPersistM
+type EMechM = ExceptT MechError MechM
 
 runMechM :: MechM x -> ConnectionPool -> IO x
 runMechM = runSqlPersistMPool

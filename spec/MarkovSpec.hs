@@ -3,15 +3,20 @@ module MarkovSpec where
 
 import FundsSpec ()
 import MarkovTypes
-import SdMech
+import SdMech hiding (from)
 
 import Control.Error (failWithM)
-import Control.Lens hiding (elements, (<.>))
+import Control.Lens hiding (elements, (<.>), from)
+import Control.Monad (forM, forM_)
 import Control.Monad.IO.Class
 import Control.Monad.Logger
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
 import Data.Either
+import Data.Map.Strict ((!))
+import qualified Data.Map.Strict as M
+import qualified Data.Vector as V
+import Database.Esqueleto
 import qualified Database.Persist as P
 import Database.Persist.Postgresql
 import Database.PostgreSQL.Simple
@@ -25,15 +30,15 @@ spec = context "Randomly-generated simulation" $ do
   context "100 years of chaos" $ do
     iterations <- runIO $ generate (generateIterations 1200)
     runMechMSpec $
-        runSpecs <$> mapM runIteration iterations
+        runSpecs <$> mapM runIteration' iterations
 
 runMechMSpec :: MechM Spec -> Spec  
 runMechMSpec action = do
   spec' <- runIO $ withLocalCluster action
   spec'
 
-runIteration :: [Event] -> MechM Spec
-runIteration events = do
+runIteration' :: [Event] -> MechM Spec
+runIteration' events = do
     eventSpecs <- runSpecs <$> mapM runEvent events
     runitSpec <- runEvent RunIteration
     return (eventSpecs >> runitSpec)
@@ -45,11 +50,6 @@ runSpecs (x : xs) = x >> runSpecs xs
 -- |Translate an 'Event' into a specification in the 'EMechM' monad.
 runEvent :: Event -> MechM Spec
 runEvent e = case e of
-    RunIteration -> do
-        return $ context (show e) $
-            specify "there should be a test here" $
-                pendingWith "pharpend's laziness"
-
     PatrSpawn patr funds' -> do
       -- Check to see if the patron exists
       patronExists <- fmap isRight $ coRight $ selectPatron patr
@@ -57,8 +57,8 @@ runEvent e = case e of
       result <- coRight $ newPatron funds' patr
       -- See how much money he has
       resultFunds <- coRight $ do
-          Entity _ val <- selectPatron patr
-          return (view funds val)
+          Entity _ val' <- selectPatron patr
+          return (view funds val')
       return $ context (show e) $
         if patronExists
           then context "Patron already exists" $
@@ -253,8 +253,8 @@ runEvent e = case e of
       result <- coRight $ newProject funds' prj
       -- See how much money he has
       resultFunds <- coRight $ do
-          Entity _ val <- selectProject prj
-          return (view funds val)
+          Entity _ val' <- selectProject prj
+          return (view funds val')
       return $ context (show e) $
         if projectExists
           then context "Project already exists" $
@@ -341,6 +341,77 @@ runEvent e = case e of
                 specify "Account balance should be zero" $
                   prjPostFunds `shouldBe` Right zero
 
+    RunIteration -> do
+      patrEntsPre <- P.selectList [] [] :: MechM [Entity MechPatron]
+      let idToPatrPre = M.fromList $ do
+              Entity patrid patron' <- patrEntsPre
+              return (patrid, patron')
+      patridToPledgesPre <- fmap M.fromList $
+        forM patrEntsPre $ \(Entity patrid _) -> do
+          patrPledges <- coRight $ getPatronPledges' patrid
+          return (patrid, patrPledges)
+      patridToDuesPre <- fmap M.fromList $
+        forM patrEntsPre $ \(Entity patrid _) -> do
+          Right dues <- coRight $ patronDues' patrid
+          return (patrid, dues)
+      projectEntitiesBefore <- P.selectList [] [] :: MechM [Entity MechProject]
+      let prjidMapToFundsBefore = M.fromList $ do
+              Entity prjid project' <- projectEntitiesBefore
+              return (prjid, view funds project')
+      
+      runIteration
+
+      patrEntsPost <- P.selectList [] [] :: MechM [Entity MechPatron]
+      let idToPatrPost = M.fromList $ do
+              Entity patrid patron' <- patrEntsPost
+              return (patrid, patron')
+      patridToPledgesPost <- fmap M.fromList $
+        forM patrEntsPost $ \(Entity patrid _) -> do
+          patrPledges <- coRight $ getPatronPledges' patrid
+          return (patrid, patrPledges)
+      pledgesPost <- P.selectList [] [] :: MechM [Entity MechPledge]
+      let pledgesPostMap = M.fromList $ fmap (\(Entity k v) -> (k, v)) pledgesPost
+      projectEntitiesAfter <- P.selectList [] [] :: MechM [Entity MechProject]
+      let prjidMapToFundsAfter = M.fromList $ do
+              Entity prjid project' <- projectEntitiesAfter
+              return (prjid, view funds project')
+
+      return $ context (show e) $ do
+        context "For each patron" $ do
+          forM_ patrEntsPre $ \(Entity patrid _) ->
+            context ("Patron number " <+> (show patrid)) $ do
+              he "should have less money after than before" $
+                shouldSatisfy (view funds (idToPatrPost ! patrid))
+                              (<= (view funds (idToPatrPre ! patrid)))
+              if view funds (idToPatrPost ! patrid) == zero
+                then context "zero funds left" $ do
+                  forM_ (patridToPledgesPost ! patrid) $ \pledges ->
+                    forM_ pledges $ \(Entity plid pl) ->
+                      context ("Pledge with key " <+> show plid) $
+                        it "should not be StActive" $ do
+                          view status pl `shouldNotBe` StActive
+                  let Right prevPledges = patridToPledgesPre ! patrid
+                      prevActivePledges = V.filter (\(Entity _ x) -> view status x == StActive) prevPledges
+                  context "previously active pledges should now have status StImpoverishedPatron" $
+                    forM_ prevActivePledges $ \(Entity plid _) -> do
+                      specify ("pledge with id " <+> show plid) $
+                        view status (pledgesPostMap ! plid) `shouldBe` StImpoverishedPatron
+                else context "still has funds" $ do
+                  he "should have his previous funds minus what he pledged" $ do
+                    let dues = patridToDuesPre ! patrid
+                        previousFunds = view funds (idToPatrPre ! patrid)
+                        afterFunds = view funds (idToPatrPost ! patrid)
+                    afterFunds `shouldBe` (balanceAfter (withdraw previousFunds dues))
+                    
+        context "For each project" $ do
+          forM_ projectEntitiesBefore $ \(Entity prjid _) -> do
+            context ("Project number " <+> show prjid) $ do
+              it "should have more money after than before" $
+                shouldSatisfy (prjidMapToFundsBefore ! prjid)
+                              (<= (prjidMapToFundsAfter ! prjid))
+      
+
+
 -- |Generate a number of iterations. 'RunIteration' is not manually
 -- interspersed.
 generateIterations :: Int -> Gen [[Event]]
@@ -418,6 +489,10 @@ pgExecute connstr query' = liftIO $ do
 -- |We like to be non-inclusive. This is a clone of 'it'
 he :: Example a => String -> a -> SpecWith (Arg a)
 he = it
+
+-- |We like to be non-inclusive. This is a clone of 'it'
+his :: Example a => String -> a -> SpecWith (Arg a)
+his = it
 
 -- |Checks if MechM result is successful
 isRight' :: forall b. EMechM b -> MechM Bool
