@@ -5,7 +5,6 @@ import Control.Lens.TH
 import Database.Persist.TH
 
 data MechPledgeStatus = StActive
-                      | StProjectSuspended
                       | StPatronSuspended
                       | StImpoverishedPatron
     deriving (Eq, Read, Show)
