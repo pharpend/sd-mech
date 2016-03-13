@@ -65,7 +65,7 @@ Bug reports and feature requests can go to the
     + development mailing list: `dev@lists.snowdrift.coop`
 
 [agpl]: https://gnu.org/licenses/agpl
-[gl-issues]: https://gitlab.com/pharpend/sd-mech-model/issues
+[gl-issues]: https://gitlab.com/pharpend/sd-mech/issues
 [git-install]: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
 [hs]: https://www.haskell.org/
 [hs-stack]: http://docs.haskellstack.org/en/stable/README/
