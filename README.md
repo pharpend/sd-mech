@@ -21,7 +21,7 @@ To build this software, you need [Git][git-install] and
 installed; however, you do not need to perform any additional setup
 beyond installing it. (I think).
 
-    git clone https://github.com/pharpend/sd-mech.git
+    git clone https://gitlab.com/pharpend/sd-mech.git
     cd sd-mech
     stack setup
     stack build
@@ -54,7 +54,7 @@ code, and the other tests the impure code.
 ## Contacting the authors
 
 Bug reports and feature requests can go to the
-[GitHub issue tracker][gh-issues].
+[GitLab issue tracker][gl-issues].
 
 * Author of this package, Peter Harpending
     + email: `peter@harpending.org`
@@ -65,7 +65,7 @@ Bug reports and feature requests can go to the
     + development mailing list: `dev@lists.snowdrift.coop`
 
 [agpl]: https://gnu.org/licenses/agpl
-[gh-issues]: https://github.com/pharpend/sd-mech-model/issues
+[gl-issues]: https://gitlab.com/pharpend/sd-mech-model/issues
 [git-install]: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
 [hs]: https://www.haskell.org/
 [hs-stack]: http://docs.haskellstack.org/en/stable/README/
