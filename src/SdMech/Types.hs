@@ -2,12 +2,12 @@
 module SdMech.Types (module SdMech.Types) where
 
 import SdMech.Funds
-import SdMech.Util
-import SdMech.Types.MechPledgeStatus as SdMech.Types
+import SdMech.Types.PledgeStatus as SdMech.Types
 
+import Control.Lens.TH
 import Control.Error
-import Data.Ord (comparing)
 import Database.Persist.Sql
+import Database.Persist.TH
 
 type MechM = SqlPersistM
 type EMechM = ExceptT MechError MechM
@@ -37,51 +37,37 @@ derivePersistField "MechError"
 
 share [mkPersist sqlSettings, mkMigrate "migrateMech"]
       [persistLowerCase|
-      MechPatron
+      Patron
           funds Funds
           externalKey Int
           ExternalPatron externalKey
-          UniqueMechPatron externalKey
-          deriving Show
-      MechProject
+          UniquePatron externalKey
+          deriving Eq Show
+      Project
           funds Funds
           externalKey Int
           ExternalProject externalKey
-          UniqueMechProject externalKey
-          deriving Show
-      MechPledge
-          patron MechPatronId
-          project MechProjectId
-          status MechPledgeStatus
-          UniqueMechPledge patron project
+          UniqueProject externalKey
+          deriving Eq Show
+      Pledge
+          patron PatronId
+          project ProjectId
+          status PledgeStatus
+          UniquePledge patron project
           deriving Eq Show
       |]
 
-
-instance Eq MechPatron where
-    m1 == m2 = mechPatronExternalKey m1 == mechPatronExternalKey m2
-
-instance Ord MechPatron where
-    compare = comparing mechPatronExternalKey
-
-instance Eq MechProject where
-    m1 == m2 = mechProjectExternalKey m1 == mechProjectExternalKey m2
-
-instance Ord MechProject where
-    compare = comparing mechProjectExternalKey
-
 class IsMechPatron x where
-  toMechPatron :: x -> Int
-  fromMechPatron :: Int -> x
+  toPatron :: x -> Int
+  fromPatron :: Int -> x
 
 class IsMechProject x where
-  toMechProject :: x -> Int
-  fromMechProject :: Int -> x
+  toProject :: x -> Int
+  fromProject :: Int -> x
 
 -- **Lenses
 
 makePrisms ''MechError
-makeLensesWith camelCaseFields ''MechPatron
-makeLensesWith camelCaseFields ''MechProject
-makeLensesWith camelCaseFields ''MechPledge
-
+makeLensesWith camelCaseFields ''Patron
+makeLensesWith camelCaseFields ''Project
+makeLensesWith camelCaseFields ''Pledge

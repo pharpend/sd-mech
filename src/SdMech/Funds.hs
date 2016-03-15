@@ -2,10 +2,12 @@
 -- operations over said type.
 module SdMech.Funds where
 
-import SdMech.Util
-
+import Control.Lens.TH
+import Data.Aeson
 import Data.Ord (comparing)
 import Data.Word (Word64)
+import Database.Persist.TH
+import GHC.Generics
 
 -- * Funds
 
