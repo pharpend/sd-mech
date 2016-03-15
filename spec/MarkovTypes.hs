@@ -4,6 +4,7 @@ module MarkovTypes where
 import FundsSpec ()
 import SdMech
 
+import Control.Lens.TH
 import Test.QuickCheck
 
 -------------------------------------------------------------------------------
@@ -38,12 +39,12 @@ data Event = RunIteration
 -------------------------------------------------------------------------------
 
 instance IsMechPatron Patr where
-    toMechPatron (Patr i) = i
-    fromMechPatron = Patr
+    toPatron (Patr i) = i
+    fromPatron = Patr
 
 instance IsMechProject Prj where
-    toMechProject (Prj i) = i
-    fromMechProject = Prj
+    toProject (Prj i) = i
+    fromProject = Prj
 
 instance Arbitrary Event where
     arbitrary =
