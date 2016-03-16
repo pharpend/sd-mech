@@ -37,23 +37,23 @@ derivePersistField "MechError"
 
 share [mkPersist sqlSettings, mkMigrate "migrateMech"]
       [persistLowerCase|
-      Patron
+      MechPatron
           funds Funds
           externalKey Int
           ExternalPatron externalKey
-          UniquePatron externalKey
+          UniqueMechPatron externalKey
           deriving Eq Show
-      Project
+      MechProject
           funds Funds
           externalKey Int
           ExternalProject externalKey
-          UniqueProject externalKey
+          UniqueMechProject externalKey
           deriving Eq Show
-      Pledge
-          patron PatronId
-          project ProjectId
-          status PledgeStatus
-          UniquePledge patron project
+      MechPledge
+          patron MechPatronId
+          project MechProjectId
+          status MechPledgeStatus
+          UniqueMechPledge patron project
           deriving Eq Show
       |]
 
@@ -68,6 +68,6 @@ class IsMechProject x where
 -- **Lenses
 
 makePrisms ''MechError
-makeLensesWith camelCaseFields ''Patron
-makeLensesWith camelCaseFields ''Project
-makeLensesWith camelCaseFields ''Pledge
+makeLensesWith camelCaseFields ''MechPatron
+makeLensesWith camelCaseFields ''MechProject
+makeLensesWith camelCaseFields ''MechPledge

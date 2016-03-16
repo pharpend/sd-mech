@@ -4,10 +4,10 @@ module SdMech.Types.PledgeStatus where
 import Control.Lens.TH
 import Database.Persist.TH
 
-data PledgeStatus = StActive
-                  | StPatronSuspended
-                  | StImpoverishedPatron
+data MechPledgeStatus = StActive
+                      | StPatronSuspended
+                      | StImpoverishedPatron
     deriving (Eq, Read, Show)
 
-derivePersistField "PledgeStatus"
-makePrisms ''PledgeStatus
+derivePersistField "MechPledgeStatus"
+makePrisms ''MechPledgeStatus

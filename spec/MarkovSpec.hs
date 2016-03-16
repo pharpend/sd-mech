@@ -183,7 +183,7 @@ runEvent z e = case e of
                 specify "pledge should be (Right (Pledge patr prj StActive))" $ do
                   let Right (Entity patrKey _) = patronE
                       Right (Entity prjKey _) = projectE
-                  pledge' `shouldBe` Right (Pledge patrKey prjKey StActive)
+                  pledge' `shouldBe` Right (MechPledge patrKey prjKey StActive)
 
     PatrActivatePledge patr prj -> do
       eitherPatron <- coRight $ selectPatron patr
@@ -342,7 +342,7 @@ runEvent z e = case e of
                   prjPostFunds `shouldBe` Right zero
 
     RunIteration -> do
-      patrEntsPre <- P.selectList [] [] :: MechM [Entity Patron]
+      patrEntsPre <- P.selectList [] [] :: MechM [Entity MechPatron]
       let idToPatrPre = M.fromList $ do
               Entity patrid patron' <- patrEntsPre
               return (patrid, patron')
@@ -357,14 +357,14 @@ runEvent z e = case e of
         forM patrEntsPre $ \(Entity patrid _) -> do
           Right dues <- coRight $ patronDues' patrid
           return (patrid, dues)
-      projectEntitiesBefore <- P.selectList [] [] :: MechM [Entity Project]
+      projectEntitiesBefore <- P.selectList [] [] :: MechM [Entity MechProject]
       let prjidMapToFundsBefore = M.fromList $ do
               Entity prjid project' <- projectEntitiesBefore
               return (prjid, view funds project')
 
       _ <- coRight $ runIteration
 
-      patrEntsPost <- P.selectList [] [] :: MechM [Entity Patron]
+      patrEntsPost <- P.selectList [] [] :: MechM [Entity MechPatron]
       let idToPatrPost = M.fromList $ do
               Entity patrid patron' <- patrEntsPost
               return (patrid, patron')
@@ -372,9 +372,9 @@ runEvent z e = case e of
         forM patrEntsPost $ \(Entity patrid _) -> do
           patrPledges <- coRight $ getPatronPledges' patrid
           return (patrid, patrPledges)
-      pledgesPost <- P.selectList [] [] :: MechM [Entity Pledge]
+      pledgesPost <- P.selectList [] [] :: MechM [Entity MechPledge]
       let pledgesPostMap = M.fromList $ fmap (\(Entity k v) -> (k, v)) pledgesPost
-      projectEntitiesAfter <- P.selectList [] [] :: MechM [Entity Project]
+      projectEntitiesAfter <- P.selectList [] [] :: MechM [Entity MechProject]
       let prjidMapToFundsAfter = M.fromList $ do
               Entity prjid project' <- projectEntitiesAfter
               return (prjid, view funds project')

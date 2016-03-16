@@ -17,16 +17,16 @@ import qualified Database.Persist as P
 -- * Patrons
 
 -- |Select a patron
-selectPatron :: IsMechPatron a => a -> EMechM (Entity Patron)
+selectPatron :: IsMechPatron a => a -> EMechM (Entity MechPatron)
 selectPatron a =
     failWithM NoSuchPatron $
-      P.getBy (UniquePatron (toPatron a))
+      P.getBy (UniqueMechPatron (toPatron a))
 
 -- |Insert a new patron
-newPatron :: IsMechPatron a => Funds -> a -> EMechM (Key Patron)
+newPatron :: IsMechPatron a => Funds -> a -> EMechM (Key MechPatron)
 newPatron funds' a =
     failWithM ExistentPatron $
-        P.insertUnique (Patron funds' (toPatron a))
+        P.insertUnique (MechPatron funds' (toPatron a))
 
 -- |Delete a patron. (Also deletes pledges associated with this patron)
 deletePatron :: IsMechPatron a => a -> EMechM ()
@@ -35,24 +35,24 @@ deletePatron a = do
     pledges' <- getPatronPledges a
     right $ do
       forM_ pledges' $ \(Entity k _) -> P.delete k
-      P.deleteBy $ UniquePatron (toPatron a)
+      P.deleteBy $ UniqueMechPatron (toPatron a)
 
 -- |Get the pledges associated with a patron.  Will throw 'NoSuchPatron' if
 -- the patron doesn't exist.
-getPatronPledges :: IsMechPatron r => r -> EMechM (Vector (Entity Pledge))
+getPatronPledges :: IsMechPatron r => r -> EMechM (Vector (Entity MechPledge))
 getPatronPledges r = do
     Entity patronK _ <- selectPatron r
     getPatronPledges' patronK
 
-getPatronPledges' :: Key Patron -> EMechM (Vector (Entity Pledge))
+getPatronPledges' :: Key MechPatron -> EMechM (Vector (Entity MechPledge))
 getPatronPledges' patronK = do
     pledges <- right $ select $ from $ \pledge -> do
-        where_ (pledge^.PledgePatron ==. val patronK)
+        where_ (pledge^.MechPledgePatron ==. val patronK)
         return pledge
     return $ V.fromList pledges
 
 -- |How much the patron owes on the next iteration.
-patronDues' :: Key Patron -> EMechM Funds
+patronDues' :: Key MechPatron -> EMechM Funds
 patronDues' patronK = do
     patronPledges <- getPatronPledges' patronK
     pledgeValues <-
@@ -77,7 +77,7 @@ patronHasSufficientFundsFor patr prj = do
     Entity prjid _ <- selectProject prj
     patronHasSufficientFundsFor' patrid prjid
 
-patronHasSufficientFundsFor' :: Key Patron -> Key Project -> EMechM Bool
+patronHasSufficientFundsFor' :: Key MechPatron -> Key MechProject -> EMechM Bool
 patronHasSufficientFundsFor' patrid prjid = do
     fn <- fundsNeededForProject' prjid
     patron' <- failWithM NoSuchPatron $ P.get patrid
@@ -107,7 +107,7 @@ patronWithdraw patr amount = do
     Entity patrid _ <- selectPatron patr
     patronWithdraw' patrid amount
 
-patronWithdraw' :: Key Patron -> Funds -> EMechM Withdrawal
+patronWithdraw' :: Key MechPatron -> Funds -> EMechM Withdrawal
 patronWithdraw' patrid  amount = do
     patron' <- failWithM NoSuchPatron $ P.get patrid
     let withdrawal = withdraw (L.view funds patron') amount
@@ -122,7 +122,7 @@ patronWithdraw' patrid  amount = do
 -- - Pledge does not exist ('NoSuchPledge')
 -- 
 -- This does not throw any errors if the pledge is already active, or if the
--- patron does not have funds. It instead returns the 'PledgeStatus'.
+-- patron does not have funds. It instead returns the 'MechPledgeStatus'.
 -- 
 -- Note that
 -- 
@@ -133,7 +133,7 @@ patronWithdraw' patrid  amount = do
 -- 
 -- This will mutate the pledge status in the database.
 patronActivatePledge :: (IsMechPatron a, IsMechProject r)
-                     => a -> r -> EMechM PledgeStatus
+                     => a -> r -> EMechM MechPledgeStatus
 patronActivatePledge patr prj = do
   Entity pledgeKey pledge' <- selectPledge patr prj
   patronHasFunds <- patronHasSufficientFundsFor patr prj
@@ -164,16 +164,16 @@ patronSuspendPledge patr prj = do
 -- * Projects
 
 -- |Select a project
-selectProject :: IsMechProject a => a -> EMechM (Entity Project)
+selectProject :: IsMechProject a => a -> EMechM (Entity MechProject)
 selectProject a =
     failWithM NoSuchProject $
-      P.getBy (UniqueProject (toProject a))
+      P.getBy (UniqueMechProject (toProject a))
 
 -- |Insert a new project
-newProject :: IsMechProject a => Funds -> a -> EMechM (Key Project)
+newProject :: IsMechProject a => Funds -> a -> EMechM (Key MechProject)
 newProject funds' a =
     failWithM ExistentProject $
-        P.insertUnique (Project funds' (toProject a))
+        P.insertUnique (MechProject funds' (toProject a))
 
 
 -- |Delete a project. Also deletes pledges associated with project.
@@ -183,27 +183,27 @@ deleteProject prj = do
     pledges' <- getProjectPledges prj
     right $ do
       forM_ pledges' $ \(Entity k _) -> P.delete k
-      P.deleteBy $ UniqueProject (toProject prj)
+      P.deleteBy $ UniqueMechProject (toProject prj)
 
 -- |Get the pledges associated with a project.  Will throw 'NoSuchProject' if
 -- the project doesn't exist.
-getProjectPledges :: IsMechProject r => r -> EMechM (Vector (Entity Pledge))
+getProjectPledges :: IsMechProject r => r -> EMechM (Vector (Entity MechPledge))
 getProjectPledges r = do
     Entity k _ <- selectProject r
     getProjectPledges' k
 
-getProjectPledges' :: Key Project -> EMechM (Vector (Entity Pledge))
+getProjectPledges' :: Key MechProject -> EMechM (Vector (Entity MechPledge))
 getProjectPledges' k = do
-    pledges <- right $ select $ from $ \pledge -> do
-        where_ (pledge^.PledgeProject ==. val k)
-        return pledge
+    pledges <- right $ select $ from $ \pledge' -> do
+        where_ (pledge'^.MechPledgeProject ==. val k)
+        return pledge'
     return $ V.fromList pledges
 
 -- |Get the number of pledges of the project
 numberOfPledgesToProject :: IsMechProject r => r -> EMechM Int
 numberOfPledgesToProject = fmap V.length . getProjectPledges
 
-numberOfPledgesToProject' :: Key Project -> EMechM Int
+numberOfPledgesToProject' :: Key MechProject -> EMechM Int
 numberOfPledgesToProject' = fmap V.length . getProjectPledges'
 
 -- |Get the number of pledges of the project
@@ -212,7 +212,7 @@ numberOfActivePledgesToProject prj = do
     Entity prjid _ <- selectProject prj
     numberOfActivePledgesToProject' prjid
 
-numberOfActivePledgesToProject' :: Key Project -> EMechM Int
+numberOfActivePledgesToProject' :: Key MechProject -> EMechM Int
 numberOfActivePledgesToProject' prjid = do
     pledges <- getProjectPledges' prjid
     let pledges' = V.filter (\(Entity _ pledge') -> L.view status pledge' == StActive) pledges
@@ -224,7 +224,7 @@ fundsNeededForProject prj = do
     Entity k _ <- selectProject prj
     fundsNeededForProject' k
     
-fundsNeededForProject' :: Key Project -> EMechM Funds
+fundsNeededForProject' :: Key MechProject -> EMechM Funds
 fundsNeededForProject' k = do
     monthlyIncome <-
         fmap intToFunds (numberOfActivePledgesToProject' k) >>= \case
@@ -269,12 +269,12 @@ projectWithdraw prj amount = do
 -- - Project does not exist ('NoSuchProject')
 -- - Pledge does not exist ('NoSuchPledge')
 selectPledge :: (IsMechPatron a, IsMechProject r)
-             => a -> r -> EMechM (Entity Pledge)
+             => a -> r -> EMechM (Entity MechPledge)
 selectPledge a r = do
     Entity patronK _ <- selectPatron a
     Entity projectK _ <- selectProject r
     failWithM NoSuchPledge $ P.getBy $
-        UniquePledge patronK projectK
+        UniqueMechPledge patronK projectK
 
 -- |Insert a pledge
 --
@@ -286,7 +286,7 @@ selectPledge a r = do
 --   have 3 iterations worth of funds.
 -- - Pledge already exists ('ExistentPledge')
 insertPledge :: (IsMechPatron a, IsMechProject r)
-             => a -> r -> EMechM (Key Pledge)
+             => a -> r -> EMechM (Key MechPledge)
 insertPledge a r = do
     Entity patronK _ <- selectPatron a
     Entity projectK _ <- selectProject r
@@ -294,7 +294,7 @@ insertPledge a r = do
     if not patronHasFunds
         then throwError InsufficientFunds
         else failWithM ExistentPledge $
-            P.insertUnique (Pledge patronK projectK StActive)
+            P.insertUnique (MechPledge patronK projectK StActive)
 
 -- |Get the status of a pledge. Will throw an error if
 -- 
@@ -302,7 +302,7 @@ insertPledge a r = do
 -- - Project does not exist ('NoSuchProject')
 -- - Pledge does not exists ('NoSuchPledge')
 getPledgeStatus :: (IsMechPatron a, IsMechProject r)
-                => a -> r -> EMechM PledgeStatus
+                => a -> r -> EMechM MechPledgeStatus
 getPledgeStatus a r = fmap (L.view status . entityVal) $ selectPledge a r
 
 
@@ -328,9 +328,9 @@ verifyPledges = do
     pledges <- right $ P.selectList [] []
     forM_ pledges $ \(Entity pk _) -> verifyPledgeStatus' pk
     
-verifyPledgeStatus' :: Key Pledge -> EMechM PledgeStatus
+verifyPledgeStatus' :: Key MechPledge -> EMechM MechPledgeStatus
 verifyPledgeStatus' pledgeId' = do
-    pl@(Pledge patronId' projectId' status') <-
+    pl@(MechPledge patronId' projectId' status') <-
         failWithM NoSuchPledge $ P.get pledgeId'
     case status' of
         StActive -> do
@@ -351,7 +351,7 @@ runIteration :: EMechM ()
 runIteration = do
     pledges <- right $ select $ from $
         \pledge' ->
-            do where_ ((pledge' ^. PledgeStatus) ==. val StActive)
+            do where_ ((pledge'^.MechPledgeStatus) ==. val StActive)
                return pledge'
     forM_ pledges $ \(Entity _ pledge') -> do
         let prjid = L.view project pledge'
