@@ -6,6 +6,7 @@ import SdMech.Types.PledgeStatus as SdMech.Types
 
 import Control.Lens.TH
 import Control.Error
+import Data.Int
 import Database.Persist.Sql
 import Database.Persist.TH
 
@@ -39,13 +40,13 @@ share [mkPersist sqlSettings, mkMigrate "migrateMech"]
       [persistLowerCase|
       MechPatron
           funds Funds
-          externalKey Int
+          externalKey Int64
           ExternalPatron externalKey
           UniqueMechPatron externalKey
           deriving Eq Show
       MechProject
           funds Funds
-          externalKey Int
+          externalKey Int64
           ExternalProject externalKey
           UniqueMechProject externalKey
           deriving Eq Show
@@ -58,12 +59,12 @@ share [mkPersist sqlSettings, mkMigrate "migrateMech"]
       |]
 
 class IsMechPatron x where
-  toPatron :: x -> Int
-  fromPatron :: Int -> x
+  toPatron :: x -> Int64
+  fromPatron :: Int64 -> x
 
 class IsMechProject x where
-  toProject :: x -> Int
-  fromProject :: Int -> x
+  toProject :: x -> Int64
+  fromProject :: Int64 -> x
 
 -- **Lenses
 

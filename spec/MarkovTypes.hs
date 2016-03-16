@@ -5,6 +5,7 @@ import FundsSpec ()
 import SdMech
 
 import Control.Lens.TH
+import Data.Int
 import Test.QuickCheck
 
 -------------------------------------------------------------------------------
@@ -12,11 +13,11 @@ import Test.QuickCheck
 -------------------------------------------------------------------------------
 
 -- |Patron
-newtype Patr = Patr { patrIdent :: Int }
+newtype Patr = Patr { patrIdent :: Int64 }
   deriving (Show, Eq, Ord, Arbitrary)
 
 -- |Project
-newtype Prj = Prj { prjIdent :: Int }
+newtype Prj = Prj { prjIdent :: Int64 }
   deriving (Show, Eq, Ord, Arbitrary)
 
 -- |Events that can happen
