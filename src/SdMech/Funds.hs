@@ -5,6 +5,7 @@ module SdMech.Funds where
 import Control.Lens.TH
 import Data.Aeson
 import Data.Ord (comparing)
+import Data.Semiring
 import Data.Word (Word64)
 import Database.Persist.TH
 import GHC.Generics
@@ -43,18 +44,13 @@ instance Monoid Funds where
   mempty = Funds 0
   mappend (Funds x) (Funds y) = Funds (x + y)
 
--- |Multiplication
-infixl 6 <.>
-(<.>) :: Funds -> Funds -> Funds
-Funds x <.> Funds y = Funds (x * y)
-
--- |Prefix form of '(<.>)'
+-- |Multiplication of 'Funds'
 times :: Funds -> Funds -> Funds
-times = (<.>)
+times (Funds x) (Funds y) = Funds (x * y)
 
--- |Multiplicative identity
-one :: Funds
-one = Funds 1
+instance Semiring Funds where
+  one = Funds 1
+  (<.>) = times
 
 -- |Conversion to 'Int'. Careful, for very large 'Funds' values, this will
 -- produce negative 'Int' values

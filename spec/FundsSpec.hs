@@ -29,12 +29,12 @@ spec = do
 
         context "Multiplication (I don't have a silly accounting word for it)" $ do
             specify "Identity: forall n, n * 1 = n" $ property $ \n ->
-                n <.> one `shouldBe` n
+                n <.> one `shouldBe` (n :: Funds)
             specify "Symmetry: forall n m, m * n = n * m" $ property $ \(n, m) ->
-                n <.> m `shouldBe` m <.> n
+                n <.> m `shouldBe` (m <.> n :: Funds)
             specify "Associativity: forall a b c, (a * b) * c = a * (b * c)" $ property $ \(a,b,c) ->
-                (a <.> b) <.> c `shouldBe` a <.> (b <.> c)
+                (a <.> b) <.> c `shouldBe` a <.> (b <.> c :: Funds)
             specify "Annihilation: forall n, n * 0 = 0" $ property $ \n ->
-                n <.> zero `shouldBe` zero
+                n <.> zero `shouldBe` (zero :: Funds)
             specify "Distribution: forall a b c, a * (b + c) = a*b + a*c" $ property $ \(a,b,c) ->
-                a <.> (b <+> c) `shouldBe` (a <.> b) <+> (a <.> c)
+                a <.> (b <+> c) `shouldBe` (a <.> b) <+> (a <.> c :: Funds)

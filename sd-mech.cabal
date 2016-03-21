@@ -47,7 +47,6 @@ library
     SdMech.Funds
     SdMech.Types
     SdMech.Types.PledgeStatus
-    SdMech.Util
   build-depends:
       base ==4.8.*
     , aeson >=0.10.0.0
@@ -59,6 +58,7 @@ library
     , persistent
     , persistent-template
     , resourcet
+    , semiring-simple >=1.0.0.0
     , vector
 
 test-suite spec

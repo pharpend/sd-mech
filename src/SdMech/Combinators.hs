@@ -2,7 +2,6 @@
 module SdMech.Combinators where
 
 import SdMech.Funds
-import SdMech.Util
 import SdMech.Types
 
 import Control.Error
@@ -10,6 +9,7 @@ import qualified Control.Lens as L
 import Control.Monad.Except
 import Data.Vector (Vector)
 import qualified Data.Vector as V
+import Data.Semiring
 import Database.Esqueleto hiding ((=.))
 import qualified Database.Persist as P
 
